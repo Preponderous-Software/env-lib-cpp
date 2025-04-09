@@ -21,3 +21,9 @@ RUN if [ "${REINSTALL_CMAKE_VERSION_FROM_SOURCE}" != "none" ]; then \
 # [Optional] Uncomment this section to install additional packages.
 # RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 #     && apt-get -y install --no-install-recommends <your-package-list-here>
+
+RUN git submodule update --init --recursive
+WORKDIR /Catch2
+RUN cmake -Bbuild -H. -DBUILD_TESTING=OFF
+RUN sudo cmake --build build/ --target install
+WORKDIR /
