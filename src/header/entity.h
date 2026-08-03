@@ -20,7 +20,6 @@ namespace envlibcpp {
             void setGridId(int id);
             void setLocationId(std::string id);
             void resetLocationId();
-            Entity& getEntity(int entityId);
             void setId(int id);
         private:
             int id = -1;

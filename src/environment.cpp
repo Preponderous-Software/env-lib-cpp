@@ -11,7 +11,7 @@ namespace envlibcpp {
     }
 
     Environment::~Environment() {
-        free(grid);
+        delete grid;
     }
 
     int Environment::getId() {
