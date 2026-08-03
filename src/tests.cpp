@@ -6,6 +6,7 @@
 
 #include <string>
 #include <iostream>
+#include <sstream>
 #include <assert.h>
 
 #include "header/entity.h"
@@ -530,6 +531,94 @@ void testMovingMultipleEntitiesToRandomAdjacentLocationsRepeatedly() {
     std::cout << " --- " << "Success" << std::endl;
 }
 
+void testSettingEnvironmentName() {
+    std::cout << "Test 27 - Setting environment name";
+    Environment environment(0, "Earth", 4);
+    environment.setName("Mars");
+    assert(environment.getName() == "Mars");
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testPrintingEnvironmentInfo() {
+    std::cout << "Test 28 - Printing environment info";
+    Environment environment(0, "Test Env", 2);
+    std::ostringstream buffer;
+    std::streambuf* previousBuffer = std::cout.rdbuf(buffer.rdbuf());
+    environment.printInfo();
+    std::cout.rdbuf(previousBuffer);
+    std::string output = buffer.str();
+    assert(output.find("Test Env") != std::string::npos);
+    assert(output.find("Num entities: 0") != std::string::npos);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testAddingEntityToSpecificLocation() {
+    std::cout << "Test 29 - Adding entity directly to a specific location";
+    Entity entity(0, "Daniel");
+    Environment environment(0, "Earth", 4);
+    Location& targetLocation = environment.getGrid()->getFirstLocation();
+    environment.addEntityToLocation(entity, targetLocation);
+    assert(entity.getLocationId() == targetLocation.getId());
+    assert(targetLocation.isEntityPresent(&entity));
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testSettingGridSize() {
+    std::cout << "Test 30 - Setting grid size";
+    Grid grid(0, 4);
+    grid.setSize(6);
+    assert(grid.getSize() == 6);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testAddingLocationToGrid() {
+    std::cout << "Test 31 - Adding a location to a grid";
+    Grid grid(0, 2);
+    size_t initialNumLocations = grid.getLocations().size();
+    Location newLocation("extra-location", 10, 10);
+    grid.addLocation(newLocation);
+    assert(grid.getLocations().size() == initialNumLocations + 1);
+    assert(grid.getLocations().back().getId() == "extra-location");
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+// Grid::removeLocation is intentionally untested here: it has a pre-existing
+// iterator-invalidation bug (see #31) that a direct test reliably triggers as
+// undefined behavior rather than a clean assertion failure.
+
+void testRetrievingLocationByCoordinates() {
+    std::cout << "Test 32 - Retrieving a location by coordinates";
+    Grid grid(0, 5);
+    Location& location = grid.getLocationByCoordinates(2, 3);
+    assert(location.getX() == 2);
+    assert(location.getY() == 3);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testRetrievingEntitiesFromLocation() {
+    std::cout << "Test 33 - Retrieving entities from a location";
+    Location location("test-location", 0, 0);
+    Entity entity1(0, "Bob");
+    Entity entity2(1, "Phil");
+    location.addEntity(&entity1);
+    location.addEntity(&entity2);
+    std::vector<Entity*>& entities = location.getEntities();
+    assert(entities.size() == 2);
+    assert(entities[0]->getId() == entity1.getId());
+    assert(entities[1]->getId() == entity2.getId());
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testRetrievingNumEntitiesFromLocation() {
+    std::cout << "Test 34 - Retrieving the number of entities in a location";
+    Location location("test-location", 0, 0);
+    assert(location.getNumEntities() == 0);
+    Entity entity(0, "Daniel");
+    location.addEntity(&entity);
+    assert(location.getNumEntities() == 1);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
 void seedRandomNumberGenerator() {
     srand (time (NULL));
 }
@@ -565,5 +654,13 @@ int main() {
     testMovingEntityToRandomAdjacentLocationRepeatedly();
     testMovingMultipleEntitiesToRandomAdjacentLocations();
     testMovingMultipleEntitiesToRandomAdjacentLocationsRepeatedly();
+    testSettingEnvironmentName();
+    testPrintingEnvironmentInfo();
+    testAddingEntityToSpecificLocation();
+    testSettingGridSize();
+    testAddingLocationToGrid();
+    testRetrievingLocationByCoordinates();
+    testRetrievingEntitiesFromLocation();
+    testRetrievingNumEntitiesFromLocation();
     return 0;
 }
