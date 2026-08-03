@@ -64,7 +64,7 @@ namespace envlibcpp {
                 return *location.getEntities()[0];
             }
         }
-        throw new std::runtime_error("No entities present in environment");
+        throw std::runtime_error("No entities present in environment");
     }
 
     Entity& Environment::getEntity(int entityId) {
@@ -83,7 +83,7 @@ namespace envlibcpp {
                 listOfEntityIds += std::to_string(entity->getId()) + ", ";
             }
         }
-        throw new std::runtime_error("Entity with id '" + std::to_string(entityId) + "' not found in environment '" + getName() + "' (found: " + listOfEntityIds + ")");
+        throw std::runtime_error("Entity with id '" + std::to_string(entityId) + "' not found in environment '" + getName() + "' (found: " + listOfEntityIds + ")");
     }
 
     void Environment::moveEntityToNewLocation(int entityId, std::string locationId) {
@@ -138,7 +138,7 @@ namespace envlibcpp {
             removeEntity(entity);
             addEntityToLocation(entity, *newLocation);
             return true;
-        } catch(const std::runtime_error* e) {
+        } catch(const std::runtime_error& e) {
             // no location found
             return false;
         }
