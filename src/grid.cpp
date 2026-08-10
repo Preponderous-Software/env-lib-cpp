@@ -55,9 +55,14 @@ namespace envlibcpp {
     }
 
     void Grid::removeLocation(Location& location) {
-        for (auto i = locations.begin(); i != locations.end(); i++) {
-            if (i->getId() == location.getId()) {
-                locations.erase(i);
+        // the id is copied up front because `location` may itself refer to an element of
+        // `locations`, which erase() would leave dangling
+        std::string targetId = location.getId();
+        for (auto i = locations.begin(); i != locations.end();) {
+            if (i->getId() == targetId) {
+                i = locations.erase(i);
+            } else {
+                i++;
             }
         }
     }
