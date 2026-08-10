@@ -630,6 +630,20 @@ void testRemovingLocationFromGrid() {
     std::cout << " --- " << "Success" << std::endl;
 }
 
+void testRemovingLocationFromMiddleOfGrid() {
+    std::cout << "Test 36 - Removing a location from the middle of a grid";
+    Grid grid(0, 2);
+    size_t initialNumLocations = grid.getLocations().size();
+    std::string middleId = grid.getLocations()[1].getId();
+    Location target(middleId, 0, 0);
+    grid.removeLocation(target);
+    assert(grid.getLocations().size() == initialNumLocations - 1);
+    for (Location& location : grid.getLocations()) {
+        assert(location.getId() != middleId);
+    }
+    std::cout << " --- " << "Success" << std::endl;
+}
+
 void seedRandomNumberGenerator() {
     srand (time (NULL));
 }
@@ -674,5 +688,6 @@ int main() {
     testRetrievingEntitiesFromLocation();
     testRetrievingNumEntitiesFromLocation();
     testRemovingLocationFromGrid();
+    testRemovingLocationFromMiddleOfGrid();
     return 0;
 }
