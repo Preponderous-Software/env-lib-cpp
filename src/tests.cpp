@@ -582,10 +582,6 @@ void testAddingLocationToGrid() {
     std::cout << " --- " << "Success" << std::endl;
 }
 
-// Grid::removeLocation is intentionally untested here: it has a pre-existing
-// iterator-invalidation bug (see #31) that a direct test reliably triggers as
-// undefined behavior rather than a clean assertion failure.
-
 void testRetrievingLocationByCoordinates() {
     std::cout << "Test 32 - Retrieving a location by coordinates";
     Grid grid(0, 5);
@@ -616,6 +612,35 @@ void testRetrievingNumEntitiesFromLocation() {
     Entity entity(0, "Daniel");
     location.addEntity(&entity);
     assert(location.getNumEntities() == 1);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testRemovingLocationFromGrid() {
+    std::cout << "Test 35 - Removing a location from a grid";
+    Grid grid(0, 2);
+    size_t initialNumLocations = grid.getLocations().size();
+    Location extraLocation("extra-location", 10, 10);
+    grid.addLocation(extraLocation);
+    assert(grid.getLocations().size() == initialNumLocations + 1);
+    grid.removeLocation(extraLocation);
+    assert(grid.getLocations().size() == initialNumLocations);
+    for (Location& location : grid.getLocations()) {
+        assert(location.getId() != "extra-location");
+    }
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testRemovingLocationFromMiddleOfGrid() {
+    std::cout << "Test 36 - Removing a location from the middle of a grid";
+    Grid grid(0, 2);
+    size_t initialNumLocations = grid.getLocations().size();
+    std::string middleId = grid.getLocations()[1].getId();
+    Location target(middleId, 0, 0);
+    grid.removeLocation(target);
+    assert(grid.getLocations().size() == initialNumLocations - 1);
+    for (Location& location : grid.getLocations()) {
+        assert(location.getId() != middleId);
+    }
     std::cout << " --- " << "Success" << std::endl;
 }
 
@@ -662,5 +687,7 @@ int main() {
     testRetrievingLocationByCoordinates();
     testRetrievingEntitiesFromLocation();
     testRetrievingNumEntitiesFromLocation();
+    testRemovingLocationFromGrid();
+    testRemovingLocationFromMiddleOfGrid();
     return 0;
 }
