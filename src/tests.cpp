@@ -644,6 +644,42 @@ void testRemovingLocationFromMiddleOfGrid() {
     std::cout << " --- " << "Success" << std::endl;
 }
 
+void testRemovingLocationFromGridClearsEntityIds() {
+    std::cout << "Test 37 - Removing a location from a grid clears the ids of its entities";
+    Grid grid(0, 2);
+    Entity entity(0, "Daniel");
+    Location& location = grid.getFirstLocation();
+    std::string locationId = location.getId();
+    grid.addEntityToLocation(entity, location);
+    assert(entity.getLocationId() == locationId);
+    assert(entity.getGridId() == grid.getId());
+    grid.removeLocation(location);
+    assert(entity.getLocationId() == "N/S");
+    assert(entity.getGridId() == -1);
+    assert(grid.isEntityPresent(entity) == false);
+    assert(grid.getNumEntities() == 0);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testRemovingLocationFromGridLeavesOtherEntitiesAlone() {
+    std::cout << "Test 38 - Removing a location from a grid leaves entities in other locations alone";
+    Grid grid(0, 2);
+    Entity removedEntity(0, "Daniel");
+    Entity survivingEntity(1, "Michael");
+    Location& removedLocation = grid.getLocations()[0];
+    Location& survivingLocation = grid.getLocations()[1];
+    std::string survivingLocationId = survivingLocation.getId();
+    grid.addEntityToLocation(removedEntity, removedLocation);
+    grid.addEntityToLocation(survivingEntity, survivingLocation);
+    assert(grid.getNumEntities() == 2);
+    grid.removeLocation(removedLocation);
+    assert(survivingEntity.getLocationId() == survivingLocationId);
+    assert(survivingEntity.getGridId() == grid.getId());
+    assert(grid.isEntityPresent(survivingEntity) == true);
+    assert(grid.getNumEntities() == 1);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
 void seedRandomNumberGenerator() {
     srand (time (NULL));
 }
@@ -689,5 +725,7 @@ int main() {
     testRetrievingNumEntitiesFromLocation();
     testRemovingLocationFromGrid();
     testRemovingLocationFromMiddleOfGrid();
+    testRemovingLocationFromGridClearsEntityIds();
+    testRemovingLocationFromGridLeavesOtherEntitiesAlone();
     return 0;
 }
