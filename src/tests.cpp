@@ -672,6 +672,8 @@ void testRemovingLocationFromGridLeavesOtherEntitiesAlone() {
     grid.addEntityToLocation(removedEntity, removedLocation);
     grid.addEntityToLocation(survivingEntity, survivingLocation);
     assert(grid.getNumEntities() == 2);
+    // removeLocation erases from the underlying vector, so survivingLocation is left
+    // dangling past this point and only the id copied above may be used
     grid.removeLocation(removedLocation);
     assert(survivingEntity.getLocationId() == survivingLocationId);
     assert(survivingEntity.getGridId() == grid.getId());
