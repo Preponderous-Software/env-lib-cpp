@@ -60,6 +60,12 @@ namespace envlibcpp {
         std::string targetId = location.getId();
         for (auto i = locations.begin(); i != locations.end();) {
             if (i->getId() == targetId) {
+                // an entity in a removed location is no longer part of the grid, so its
+                // ids are cleared the same way removeEntity() clears them
+                for (Entity* entity : i->getEntities()) {
+                    entity->resetLocationId();
+                    entity->setGridId(-1);
+                }
                 i = locations.erase(i);
             } else {
                 i++;
