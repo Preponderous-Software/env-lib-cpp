@@ -19,7 +19,9 @@ A C++ compiler (`g++`) and `make` are the only prerequisites.
 make
 ```
 
-The `Makefile` has a single target, `tests`, which is also the default. It compiles every source file under `src/` — the four classes plus the test suite in `src/tests.cpp` — into a `tests_executable` binary at the repository root. No install, packaging, or shared-library target is defined, so a consuming project compiles the sources in `src/` alongside its own and includes the headers from `src/header/`.
+The default target, `all`, depends on the only other target, `tests`. It compiles every `.cpp` file in `src/` — the four class implementations plus the test suite — into a `tests_executable` binary at the repository root.
+
+No install, packaging, or shared-library target is defined. A consuming project therefore compiles `src/entity.cpp`, `src/environment.cpp`, `src/grid.cpp`, and `src/location.cpp` alongside its own sources and includes the headers from `src/header/`. `src/tests.cpp` is excluded, since it defines its own `main()`.
 
 `tests_executable` is listed in `.gitignore` and is never committed.
 
