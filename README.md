@@ -11,6 +11,36 @@ Location | Represents a location that can contain entities.
 
 Entities exist in locations. Locations exist in grids. Grids exist in environments. Environments serve as the interface for developers to affect the locations and entities within.
 
+## Building
+
+A C++ compiler (`g++`) and `make` are the only prerequisites.
+
+```
+make
+```
+
+The default target, `all`, depends on the only other target, `tests`. It compiles every `.cpp` file in `src/` — the four class implementations plus the test suite — into a `tests_executable` binary at the repository root.
+
+No install, packaging, or shared-library target is defined. A consuming project therefore compiles `src/entity.cpp`, `src/environment.cpp`, `src/grid.cpp`, and `src/location.cpp` alongside its own sources and includes the headers from `src/header/`. `src/tests.cpp` is excluded, since it defines its own `main()`.
+
+`tests_executable` is listed in `.gitignore` and is never committed.
+
+## Running Tests
+
+The test suite lives in `src/tests.cpp` as a set of `assert()`-based functions registered in `main()`. A failing assertion aborts the process, so a nonzero exit status means the suite failed.
+
+```
+bash run_tests.sh
+```
+
+`run_tests.sh` is the canonical gate: it deletes any previous binary, runs `make`, and executes the result. This script is expected to pass before a change is merged.
+
+```
+bash run_tests_asan.sh
+```
+
+`run_tests_asan.sh` is the AddressSanitizer variant. It compiles the same sources with `-fsanitize=address -g` into `tests_executable_asan` and runs it with `ASAN_OPTIONS=detect_leaks=1`, so an unfreed allocation or a memory-safety error fails the run. Running it is additionally expected for any change that affects allocation or object lifetime.
+
 ## py_env_lib
 
 This project is based on py_env_lib, the repository for which can be found [here](https://github.com/Preponderous-Software/py_env_lib).
