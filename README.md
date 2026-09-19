@@ -11,6 +11,14 @@ Location | Represents a location that can contain entities.
 
 Entities exist in locations. Locations exist in grids. Grids exist in environments. Environments serve as the interface for developers to affect the locations and entities within.
 
+## Ownership and Lifetime
+
+The library does not own the entities placed in it. `Environment::addEntity`, `addEntityToLocation`, and `removeEntity` take an `Entity&`, and a `Location` stores the address of that object in a `std::vector<Entity*>`. Nothing in the library ever allocates or deletes an `Entity`. The caller must therefore keep each `Entity` alive, and at a stable address, for as long as it is present in an environment; destroying it, or letting its address change (for example by storing entities in a `std::vector<Entity>` that later reallocates), leaves a dangling pointer in its location.
+
+An `Environment` owns its `Grid`. The grid is allocated in the `Environment` constructor and deleted in its destructor. `Environment::getGrid()` returns that same pointer for inspection and must not be deleted by the caller.
+
+A `Grid` stores its locations by value in a `std::vector<Location>`. `Grid::getLocation`, `getLocationByCoordinates`, `getFirstLocation`, and `getRandomLocation` return a `Location&` into that vector, so any such reference may be invalidated by a later call to `Grid::addLocation` or `Grid::removeLocation`. `addLocation` also stores a copy of its argument; the grid subsequently operates on the copy, not on the caller's original object.
+
 ## Building
 
 A C++ compiler (`g++`) and `make` are the only prerequisites.
