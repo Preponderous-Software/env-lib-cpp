@@ -1,5 +1,5 @@
 # remove executable
-rm ./tests_executable
+rm -f ./tests_executable
 
 # compile
 make
