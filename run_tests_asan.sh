@@ -1,5 +1,5 @@
 # remove executable
-rm ./tests_executable_asan
+rm -f ./tests_executable_asan
 
 # compile with AddressSanitizer to catch memory-safety regressions (e.g. new/free mismatches, use-after-free)
 g++ -fsanitize=address -g src/*.cpp -o tests_executable_asan

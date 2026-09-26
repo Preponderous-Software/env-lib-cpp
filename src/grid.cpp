@@ -1,6 +1,8 @@
 #include "header/grid.h"
 
+#include <cstdlib>
 #include <iostream>
+#include <stdexcept>
 
 namespace envlibcpp {
     Grid::Grid(int identifier, int gridSize) {
