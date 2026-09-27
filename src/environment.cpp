@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <iostream>
+#include <stdexcept>
 
 namespace envlibcpp {
     Environment::Environment(int identifier, std::string envName, int size) {
