@@ -23,6 +23,10 @@ A `Grid` stores its locations by value in a `std::vector<Location>`. `Grid::getL
 
 `Environment(id, name, size)` creates a square grid of `size` × `size` locations. The grid is given the environment's own `id`, and each location's id has the form `<gridId>-<x>-<y>` (for example `0-2-1`). Locations are generated row by row, with `x` and `y` each running from `0` to `size - 1`; `Grid::getLocations()` and `Environment::printConsoleRepresentation()` follow that order.
 
+`Environment::addEntity` (and `Grid::addEntity`) places the entity in a location chosen by `Grid::getRandomLocation()`, not in the first location. To place an entity at a specific location, use `addEntityToLocation`.
+
+`Grid::setSize` and `Grid::setId` only overwrite the stored value. Neither regenerates the grid's locations nor renames their ids, so after either call `getSize()` or `getId()` no longer describes the existing locations. `printConsoleRepresentation()` breaks rows every `getSize()` locations, so it misaligns after `setSize`.
+
 `y` increases downward: `moveEntityUp` moves an entity to `y - 1`, `moveEntityDown` to `y + 1`, `moveEntityLeft` to `x - 1`, and `moveEntityRight` to `x + 1`. The grid does not wrap. A move that would leave the grid returns `false` and leaves the entity where it was; a successful move returns `true`. `moveEntityToRandomAdjacentLocation` picks one of the same four directions with `rand()`, so it also returns `false` whenever the chosen direction points off the grid. The library never calls `srand()`; seeding is left to the caller.
 
 ## Entity Identity
@@ -30,6 +34,8 @@ A `Grid` stores its locations by value in a `std::vector<Location>`. `Grid::getL
 Entities are matched by `Entity::getId()`, not by address. `Location::isEntityPresent`, `Location::removeEntity`, and `Environment::getEntity` all compare ids, so two distinct `Entity` objects that share an id are treated as the same entity. Entity ids should therefore be unique within an environment.
 
 A newly constructed entity has an environment id and grid id of `-1` and a location id of `"N/S"`. Placing it through an `Environment` sets all three; `Environment::removeEntity` resets them to those same values.
+
+`Grid::removeLocation` also detaches any entities in the removed location: it resets their location id to `"N/S"` and their grid id to `-1`. It leaves their environment id unchanged, since the grid has no knowledge of its environment.
 
 ## Errors
 
