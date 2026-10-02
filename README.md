@@ -17,6 +17,8 @@ The library does not own the entities placed in it. `Environment::addEntity`, `a
 
 An `Environment` owns its `Grid`. The grid is allocated in the `Environment` constructor and deleted in its destructor. `Environment::getGrid()` returns that same pointer for inspection and must not be deleted by the caller.
 
+`Environment` declares no copy constructor or copy assignment operator, so the compiler-generated ones copy the `Grid*` itself. A copy and its original then share one grid, and each deletes it on destruction. An `Environment` should therefore not be copied or assigned; pass it by reference or by pointer instead.
+
 A `Grid` stores its locations by value in a `std::vector<Location>`. `Grid::getLocation`, `getLocationByCoordinates`, `getFirstLocation`, and `getRandomLocation` return a `Location&` into that vector, so any such reference may be invalidated by a later call to `Grid::addLocation` or `Grid::removeLocation`. `addLocation` also stores a copy of its argument; the grid subsequently operates on the copy, not on the caller's original object.
 
 ## Grid Layout and Movement
@@ -24,6 +26,8 @@ A `Grid` stores its locations by value in a `std::vector<Location>`. `Grid::getL
 `Environment(id, name, size)` creates a square grid of `size` × `size` locations. The grid is given the environment's own `id`, and each location's id has the form `<gridId>-<x>-<y>` (for example `0-2-1`). Locations are generated row by row, with `x` and `y` each running from `0` to `size - 1`; `Grid::getLocations()` and `Environment::printConsoleRepresentation()` follow that order.
 
 `Environment::addEntity` (and `Grid::addEntity`) places the entity in a location chosen by `Grid::getRandomLocation()`, not in the first location. To place an entity at a specific location, use `addEntityToLocation`.
+
+`addEntityToLocation` checks that the grid has a location with the same id as its `location` argument, then adds the entity to that argument, not to the grid's own element. The argument should therefore be a reference obtained from the grid (for example from `getLocation` or `getLocationByCoordinates`). A separately constructed `Location` with a matching id records the entity in that object, where the grid never sees it.
 
 `Grid::setSize` and `Grid::setId` only overwrite the stored value. Neither regenerates the grid's locations nor renames their ids, so after either call `getSize()` or `getId()` no longer describes the existing locations. `printConsoleRepresentation()` breaks rows every `getSize()` locations, so it misaligns after `setSize`.
 
@@ -46,6 +50,8 @@ Lookups that find nothing throw `std::runtime_error`:
 - `Grid::getLocation` and `Grid::getLocationByCoordinates`, when no location matches.
 
 `Environment::moveEntityToNewLocation` looks up both the entity and the destination before moving anything, so an unknown entity id or location id throws and leaves the entity in place. The directional move methods catch the off-grid case and return `false`, but still throw if `entityId` does not name an entity in the environment.
+
+`addEntityToLocation` does not throw when no grid location has the given location's id. The entity is then placed nowhere, but its grid id (and, through `Environment::addEntityToLocation`, its environment id) is still set.
 
 `Grid::getFirstLocation` and `Grid::getRandomLocation` do not check for an empty grid. Calling either on a grid with no locations — including indirectly through `Environment::addEntity` on an environment of size `0` — is undefined behaviour.
 
