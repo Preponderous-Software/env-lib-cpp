@@ -27,7 +27,7 @@ A `Grid` stores its locations by value in a `std::vector<Location>`. `Grid::getL
 
 `Environment::addEntity` (and `Grid::addEntity`) places the entity in a location chosen by `Grid::getRandomLocation()`, not in the first location. To place an entity at a specific location, use `addEntityToLocation`.
 
-`addEntityToLocation` checks that the grid has a location with the same id as its `location` argument, then adds the entity to that argument, not to the grid's own element. The argument should therefore be a reference obtained from the grid (for example from `getLocation` or `getLocationByCoordinates`). A separately constructed `Location` with a matching id records the entity in that object, where the grid never sees it.
+`addEntityToLocation` uses its `location` argument only for its id: the entity is added to the grid's own location with that id. The argument may therefore be either a reference obtained from the grid (for example from `getLocation` or `getLocationByCoordinates`) or a separately constructed `Location` with a matching id; in the latter case the separate object is left unchanged.
 
 `Grid::setSize` and `Grid::setId` only overwrite the stored value. Neither regenerates the grid's locations nor renames their ids, so after either call `getSize()` or `getId()` no longer describes the existing locations. `printConsoleRepresentation()` breaks rows every `getSize()` locations, so it misaligns after `setSize`.
 
@@ -51,7 +51,7 @@ Lookups that find nothing throw `std::runtime_error`:
 
 `Environment::moveEntityToNewLocation` looks up both the entity and the destination before moving anything, so an unknown entity id or location id throws and leaves the entity in place. The directional move methods catch the off-grid case and return `false`, but still throw if `entityId` does not name an entity in the environment.
 
-`addEntityToLocation` does not throw when no grid location has the given location's id. The entity is then placed nowhere, but its grid id (and, through `Environment::addEntityToLocation`, its environment id) is still set.
+`addEntityToLocation` does not throw when no grid location has the given location's id. The entity is then placed nowhere, and its grid id, environment id, and location id are left unchanged.
 
 `Grid::getFirstLocation` and `Grid::getRandomLocation` do not check for an empty grid. Calling either on a grid with no locations — including indirectly through `Environment::addEntity` on an environment of size `0` — is undefined behaviour.
 
