@@ -682,6 +682,35 @@ void testRemovingLocationFromGridLeavesOtherEntitiesAlone() {
     std::cout << " --- " << "Success" << std::endl;
 }
 
+void testAddingEntityToLocationCopyPlacesEntityInGrid() {
+    std::cout << "Test 39 - Adding an entity via a copy of a location places it in the grid's own location";
+    Grid grid(0, 2);
+    Entity entity(0, "Daniel");
+    std::string locationId = grid.getLocations()[1].getId();
+    Location copy(locationId, 1, 0);
+    grid.addEntityToLocation(entity, copy);
+    assert(grid.getLocation(locationId).isEntityPresent(&entity) == true);
+    assert(grid.isEntityPresent(entity) == true);
+    assert(grid.getNumEntities() == 1);
+    assert(copy.getNumEntities() == 0);
+    assert(entity.getLocationId() == locationId);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testAddingEntityToUnknownLocationLeavesIdsUnset() {
+    std::cout << "Test 40 - Adding an entity to a location the grid does not have leaves its ids unset";
+    Environment environment(7, "Earth", 2);
+    Entity entity(0, "Daniel");
+    Location unknown("no-such-location", 5, 5);
+    environment.addEntityToLocation(entity, unknown);
+    assert(entity.getGridId() == -1);
+    assert(entity.getEnvironmentId() == -1);
+    assert(entity.getLocationId() == "N/S");
+    assert(environment.isEntityPresent(entity) == false);
+    assert(unknown.getNumEntities() == 0);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
 void seedRandomNumberGenerator() {
     srand (time (NULL));
 }
@@ -729,5 +758,7 @@ int main() {
     testRemovingLocationFromMiddleOfGrid();
     testRemovingLocationFromGridClearsEntityIds();
     testRemovingLocationFromGridLeavesOtherEntitiesAlone();
+    testAddingEntityToLocationCopyPlacesEntityInGrid();
+    testAddingEntityToUnknownLocationLeavesIdsUnset();
     return 0;
 }

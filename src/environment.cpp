@@ -37,8 +37,11 @@ namespace envlibcpp {
     }
 
     void Environment::addEntityToLocation(Entity& entity, Location& location) {
-        entity.setEnvironmentId(id);
         grid->addEntityToLocation(entity, location);
+        // the grid only claims the entity when the location exists, so neither does the environment
+        if (entity.getGridId() == grid->getId()) {
+            entity.setEnvironmentId(id);
+        }
     }
 
     void Environment::removeEntity(Entity& entity) {
