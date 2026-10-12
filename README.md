@@ -17,7 +17,7 @@ The library does not own the entities placed in it. `Environment::addEntity`, `a
 
 An `Environment` owns its `Grid`. The grid is allocated in the `Environment` constructor and deleted in its destructor. `Environment::getGrid()` returns that same pointer for inspection and must not be deleted by the caller.
 
-`Environment` declares no copy constructor or copy assignment operator, so the compiler-generated ones copy the `Grid*` itself. A copy and its original then share one grid, and each deletes it on destruction. An `Environment` should therefore not be copied or assigned; pass it by reference or by pointer instead.
+`Environment`'s copy constructor and copy assignment operator are deleted, since a copy would share the original's `Grid*` and both would delete it on destruction. Copying or assigning an `Environment` is therefore a compile error; pass it by reference or by pointer instead.
 
 A `Grid` stores its locations by value in a `std::vector<Location>`. `Grid::getLocation`, `getLocationByCoordinates`, `getFirstLocation`, and `getRandomLocation` return a `Location&` into that vector, so any such reference may be invalidated by a later call to `Grid::addLocation` or `Grid::removeLocation`. `addLocation` also stores a copy of its argument; the grid subsequently operates on the copy, not on the caller's original object.
 
