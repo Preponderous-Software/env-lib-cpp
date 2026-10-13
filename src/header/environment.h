@@ -12,6 +12,8 @@ namespace envlibcpp {
     class Environment {
         public:
             Environment(int id, std::string envName, int size);
+            Environment(const Environment&) = delete;
+            Environment& operator=(const Environment&) = delete;
             ~Environment();
             int getId();
             std::string getName();
