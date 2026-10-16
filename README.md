@@ -39,6 +39,10 @@ Entities are matched by `Entity::getId()`, not by address. `Location::isEntityPr
 
 A newly constructed entity has an environment id and grid id of `-1` and a location id of `"N/S"`. Placing it through an `Environment` sets all three; `Environment::removeEntity` resets them to those same values.
 
+`Environment::removeEntity` does not check that the entity is present first. Its environment id and grid id are set to `-1` unconditionally, while its location id is reset only if one of the grid's locations held it. Calling `removeEntity` on an entity that is not in the environment — including one placed in a different environment — therefore clears its environment id and grid id but leaves its location id and its actual placement unchanged.
+
+Adding is likewise unchecked. `addEntity` and `addEntityToLocation` do not test whether the entity is already present, so adding it a second time stores a second pointer to it (in another location, or in the same one), its location id names only the most recent location, and `getNumEntities` counts it twice. To relocate an entity that is already placed, use `moveEntityToNewLocation` or one of the directional move methods, which remove it before adding it again.
+
 `Grid::removeLocation` also detaches any entities in the removed location: it resets their location id to `"N/S"` and their grid id to `-1`. It leaves their environment id unchanged, since the grid has no knowledge of its environment.
 
 ## Errors
@@ -67,7 +71,7 @@ The default target, `all`, depends on the only other target, `tests`. It compile
 
 No install, packaging, or shared-library target is defined. A consuming project therefore compiles `src/entity.cpp`, `src/environment.cpp`, `src/grid.cpp`, and `src/location.cpp` alongside its own sources and includes the headers from `src/header/`. `src/tests.cpp` is excluded, since it defines its own `main()`.
 
-`tests_executable` is listed in `.gitignore` and is never committed.
+`tests_executable`, along with the `tests_executable_asan` binary built by `run_tests_asan.sh`, is listed in `.gitignore` and is never committed.
 
 ## Running Tests
 
