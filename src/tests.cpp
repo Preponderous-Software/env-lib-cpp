@@ -711,6 +711,36 @@ void testAddingEntityToUnknownLocationLeavesIdsUnset() {
     std::cout << " --- " << "Success" << std::endl;
 }
 
+void testRemovingEntityFromOtherEnvironmentLeavesIdsAlone() {
+    std::cout << "Test 41 - Removing an entity from an environment it is not in leaves its ids and placement unchanged";
+    Environment home(3, "Earth", 2);
+    Environment other(8, "Mars", 2);
+    Entity entity(0, "Daniel");
+    home.addEntity(entity);
+    std::string locationId = entity.getLocationId();
+    other.removeEntity(entity);
+    assert(entity.getEnvironmentId() == 3);
+    assert(entity.getGridId() == 3);
+    assert(entity.getLocationId() == locationId);
+    assert(home.isEntityPresent(entity) == true);
+    assert(home.getNumEntities() == 1);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testRemovingEntityFromOtherGridLeavesIdsAlone() {
+    std::cout << "Test 42 - Removing an entity from a grid it is not in leaves its ids unchanged";
+    Grid home(4, 2);
+    Grid other(9, 2);
+    Entity entity(0, "Daniel");
+    home.addEntity(entity);
+    std::string locationId = entity.getLocationId();
+    other.removeEntity(entity);
+    assert(entity.getGridId() == 4);
+    assert(entity.getLocationId() == locationId);
+    assert(home.isEntityPresent(entity) == true);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
 void seedRandomNumberGenerator() {
     srand (time (NULL));
 }
@@ -760,5 +790,7 @@ int main() {
     testRemovingLocationFromGridLeavesOtherEntitiesAlone();
     testAddingEntityToLocationCopyPlacesEntityInGrid();
     testAddingEntityToUnknownLocationLeavesIdsUnset();
+    testRemovingEntityFromOtherEnvironmentLeavesIdsAlone();
+    testRemovingEntityFromOtherGridLeavesIdsAlone();
     return 0;
 }

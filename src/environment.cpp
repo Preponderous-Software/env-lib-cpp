@@ -45,6 +45,10 @@ namespace envlibcpp {
     }
 
     void Environment::removeEntity(Entity& entity) {
+        // an entity that is not here (e.g. one placed in another environment) keeps its ids
+        if (!isEntityPresent(entity)) {
+            return;
+        }
         entity.setEnvironmentId(-1);
         grid->removeEntity(entity);
     }

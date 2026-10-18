@@ -39,7 +39,7 @@ Entities are matched by `Entity::getId()`, not by address. `Location::isEntityPr
 
 A newly constructed entity has an environment id and grid id of `-1` and a location id of `"N/S"`. Placing it through an `Environment` sets all three; `Environment::removeEntity` resets them to those same values.
 
-`Environment::removeEntity` does not check that the entity is present first. Its environment id and grid id are set to `-1` unconditionally, while its location id is reset only if one of the grid's locations held it. Calling `removeEntity` on an entity that is not in the environment — including one placed in a different environment — therefore clears its environment id and grid id but leaves its location id and its actual placement unchanged.
+`Environment::removeEntity` and `Grid::removeEntity` do nothing when the entity is not present. Calling either on an entity that is not in that environment or grid — including one placed in a different environment — leaves its environment id, grid id, location id, and actual placement unchanged.
 
 Adding is likewise unchecked. `addEntity` and `addEntityToLocation` do not test whether the entity is already present, so adding it a second time stores a second pointer to it (in another location, or in the same one), its location id names only the most recent location, and `getNumEntities` counts it twice. To relocate an entity that is already placed, use `moveEntityToNewLocation` or one of the directional move methods, which remove it before adding it again.
 
