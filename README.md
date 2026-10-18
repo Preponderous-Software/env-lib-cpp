@@ -1,6 +1,10 @@
 # environment-lib-cpp
 This C++ library provides base classes for creating 2D virtual worlds.
 
+![Ten entities taking random steps through an 8x8 environment, printed by printConsoleRepresentation()](docs/images/random-walk.gif)
+
+*Ten entities moving to random adjacent locations in an 8x8 `Environment`; each frame is the library's own `printConsoleRepresentation()` output (`x` marks an occupied location). Recorded from [`docs/demo.cpp`](docs/demo.cpp) by `bash docs/capture.sh` (needs g++ and Python with Pillow).*
+
 ## Classes
 Name | Description
 ----- | -----
