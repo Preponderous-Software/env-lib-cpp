@@ -94,6 +94,10 @@ namespace envlibcpp {
     }
 
     void Grid::removeEntity(Entity& entity) {
+        // an entity that is not in this grid keeps its ids
+        if (!isEntityPresent(entity)) {
+            return;
+        }
         for (Location& location : locations) {
             if (location.isEntityPresent(&entity)) {
                 location.removeEntity(&entity);
