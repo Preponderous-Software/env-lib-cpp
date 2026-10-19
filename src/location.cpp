@@ -38,10 +38,11 @@ namespace envlibcpp {
                 break;
             }
         }
+        // an entity that is not in this location keeps its location id
         if (index != -1) {
             entities.erase(entities.begin() + index);
+            entity->resetLocationId();
         }
-        entity->resetLocationId();
     }
     
     bool Location::isEntityPresent(Entity* entity) {
