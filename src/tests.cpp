@@ -741,6 +741,19 @@ void testRemovingEntityFromOtherGridLeavesIdsAlone() {
     std::cout << " --- " << "Success" << std::endl;
 }
 
+void testRemovingEntityFromOtherLocationLeavesLocationIdAlone() {
+    std::cout << "Test 43 - Removing an entity from a location it is not in leaves its location id unchanged";
+    Location home("home-0-0", 0, 0);
+    Location other("other-1-0", 1, 0);
+    Entity entity(0, "Daniel");
+    home.addEntity(&entity);
+    other.removeEntity(&entity);
+    assert(entity.getLocationId() == "home-0-0");
+    assert(home.isEntityPresent(&entity) == true);
+    assert(other.getNumEntities() == 0);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
 void seedRandomNumberGenerator() {
     srand (time (NULL));
 }
@@ -792,5 +805,6 @@ int main() {
     testAddingEntityToUnknownLocationLeavesIdsUnset();
     testRemovingEntityFromOtherEnvironmentLeavesIdsAlone();
     testRemovingEntityFromOtherGridLeavesIdsAlone();
+    testRemovingEntityFromOtherLocationLeavesLocationIdAlone();
     return 0;
 }
