@@ -754,6 +754,43 @@ void testRemovingEntityFromOtherLocationLeavesLocationIdAlone() {
     std::cout << " --- " << "Success" << std::endl;
 }
 
+void testRetrievingEntityName() {
+    std::cout << "Test 44 - Retrieving entity name";
+    Entity entity(1, "Daniel");
+    assert(entity.getName() == "Daniel");
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testSettingEntityName() {
+    std::cout << "Test 45 - Setting entity name";
+    Entity entity(1, "Daniel");
+    entity.setName("Bob");
+    assert(entity.getName() == "Bob");
+    assert(entity.getId() == 1);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testSettingEntityId() {
+    std::cout << "Test 46 - Setting entity id";
+    Entity entity(1, "Daniel");
+    entity.setId(7);
+    assert(entity.getId() == 7);
+    assert(entity.getName() == "Daniel");
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testSettingEntityEnvironmentAndGridIds() {
+    std::cout << "Test 47 - Setting entity environment and grid ids";
+    Entity entity(1, "Daniel");
+    assert(entity.getEnvironmentId() == -1);
+    assert(entity.getGridId() == -1);
+    entity.setEnvironmentId(3);
+    entity.setGridId(5);
+    assert(entity.getEnvironmentId() == 3);
+    assert(entity.getGridId() == 5);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
 void seedRandomNumberGenerator() {
     srand (time (NULL));
 }
@@ -806,5 +843,9 @@ int main() {
     testRemovingEntityFromOtherEnvironmentLeavesIdsAlone();
     testRemovingEntityFromOtherGridLeavesIdsAlone();
     testRemovingEntityFromOtherLocationLeavesLocationIdAlone();
+    testRetrievingEntityName();
+    testSettingEntityName();
+    testSettingEntityId();
+    testSettingEntityEnvironmentAndGridIds();
     return 0;
 }
