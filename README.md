@@ -5,6 +5,24 @@ This C++ library provides base classes for creating 2D virtual worlds.
 
 *Ten entities moving to random adjacent locations in an 8x8 `Environment`; each frame is the library's own `printConsoleRepresentation()` output (`x` marks an occupied location). Recorded from [`docs/demo.cpp`](docs/demo.cpp) by `bash docs/capture.sh` (needs g++ and Python with Pillow).*
 
+## A 3D view (optional, on Strata)
+
+![The same ten walkers from docs/demo.cpp, drawn in 3D with Strata: capsules step between cells on an 8x8 board](docs/media/walkers-3d.gif)
+
+*The README's random walk again (`docs/demo.cpp`, seed 7), drawn by the opt-in Strata frontend in [`strata/`](strata/): one capsule per entity, sliding between cells between ticks.*
+
+![A 20x20 meadow in 3D: grazing sheep, stalking wolves and flowers on grass that turns to dirt where it has been eaten](docs/media/meadow-3d.gif)
+
+*A larger demo world (`--world meadow`): sheep graze and wander, wolves stalk the nearest sheep, flowers stay put. The grass under each location is the demo's own state, shown as the floor colour.*
+
+The frontend reads an `Environment` and draws it with the [Strata](https://github.com/Preponderous-Software/strata) engine (v0.4.0). It never changes the world: CI runs each demo with and without drawing and compares the results. A consumer writes one callback that turns an `Entity` into a shape, colour and size; everything else (floor, camera, tweening, picking a location with the mouse, a HUD) is provided. It is opt-in and built separately with CMake, so the library above still needs nothing but a C++ compiler. See [docs/STRATA.md](docs/STRATA.md).
+
+```
+cmake -S strata -B build-strata -DCMAKE_BUILD_TYPE=Release
+cmake --build build-strata -j4
+build-strata/envlib_strata_demo --world meadow
+```
+
 ## Classes
 Name | Description
 ----- | -----
@@ -73,7 +91,13 @@ make
 
 The default target, `all`, depends on the only other target, `tests`. It compiles every `.cpp` file in `src/` — the four class implementations plus the test suite — into a `tests_executable` binary at the repository root.
 
-No install, packaging, or shared-library target is defined. A consuming project therefore compiles `src/entity.cpp`, `src/environment.cpp`, `src/grid.cpp`, and `src/location.cpp` alongside its own sources and includes the headers from `src/header/`. `src/tests.cpp` is excluded, since it defines its own `main()`.
+A `CMakeLists.txt` builds the same four sources as the static library target `envlibcpp` (alias `envlibcpp::envlibcpp`, with `src/header/` as its include directory) and the test suite as a CTest test:
+
+```
+cmake -S . -B build && cmake --build build && ctest --test-dir build
+```
+
+A CMake project can use it with `add_subdirectory()` or `FetchContent`. No install, packaging, or shared-library target is defined. A project that does not use CMake therefore compiles `src/entity.cpp`, `src/environment.cpp`, `src/grid.cpp`, and `src/location.cpp` alongside its own sources and includes the headers from `src/header/`. `src/tests.cpp` is excluded, since it defines its own `main()`.
 
 `tests_executable`, along with the `tests_executable_asan` binary built by `run_tests_asan.sh`, is listed in `.gitignore` and is never committed.
 

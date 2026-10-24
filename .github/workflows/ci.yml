@@ -1,0 +1,79 @@
+# The library's own tests (Makefile and CMake), and the opt-in Strata 3D
+# frontend in strata/ (docs/STRATA.md): its unit tests, headless render tests
+# on Mesa llvmpipe (golden image, picking), and a check that drawing a world
+# never changes it.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  library:
+    name: Library tests (make + CMake)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: make and run the tests
+        run: bash run_tests.sh
+      - name: CMake build and ctest
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build -j 4
+          ctest --test-dir build --output-on-failure
+
+  strata:
+    name: Strata frontend (build, tests, headless render)
+    runs-on: ubuntu-latest
+    container: ubuntu:24.04@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac
+    env:
+      LIBGL_ALWAYS_SOFTWARE: "1"
+      GALLIUM_DRIVER: llvmpipe
+      __EGL_VENDOR_LIBRARY_FILENAMES: /usr/share/glvnd/egl_vendor.d/50_mesa.json
+    steps:
+      - name: Install toolchain, SDL3 build dependencies and Mesa
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            ca-certificates git build-essential cmake pkg-config \
+            libx11-dev libxext-dev libxcursor-dev libxi-dev libxfixes-dev libxrandr-dev libxss-dev \
+            libegl1 libegl-mesa0 libgl1-mesa-dri libgl1
+
+      - uses: actions/checkout@v4
+
+      - name: Configure (Strata fetched at strata/strata.ref)
+        run: cmake -S strata -B build-strata -DCMAKE_BUILD_TYPE=Release -DENVLIB_STRATA_WARNINGS_AS_ERRORS=ON
+
+      - name: Build
+        run: cmake --build build-strata -j 4
+
+      - name: Test (view + headless render)
+        run: ctest --test-dir build-strata --output-on-failure
+
+      - name: Drawing does not change the world (same state hash with and without rendering)
+        shell: bash
+        run: |
+          set -euo pipefail
+          for world in walkers meadow; do
+            build-strata/envlib_strata_demo --world "$world" --state --ticks 40 | tee "$world-plain.log"
+            build-strata/envlib_strata_demo --world "$world" --headless --ticks 40 --frames-per-tick 1 \
+              --width 640 --height 400 --screenshot "envlib-strata-$world.png" | grep '^state ' | tee "$world-drawn.log"
+            test "$(cat "$world-plain.log")" = "$(cat "$world-drawn.log")"
+          done
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: envlib-strata-screenshots
+          path: |
+            envlib-strata-*.png
+            build-strata/golden-walkers-seed7-actual.png
+          if-no-files-found: ignore
