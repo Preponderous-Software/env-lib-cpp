@@ -1,6 +1,8 @@
 # Builds the Strata frontend's demo worlds for the browser (Emscripten +
 # Strata's WebGL 2 backend), runs the view tests as wasm under Node, and
-# smoke-tests the page in headless Chromium on a desktop and a phone profile.
+# smoke-tests the page in headless Chromium on a desktop and a phone profile,
+# and, when enabled, deploys it to arcade as
+# https://env-lib-cpp.play.danielstephenson.dev
 name: Browser build
 
 on:
@@ -85,3 +87,19 @@ jobs:
             web-site/
             smoke-out/
           if-no-files-found: ignore
+
+      - name: Write the deploy version
+        run: |
+          version=$(sed -n 's/^project(envlib_strata VERSION \([0-9.]*\).*/\1/p' strata/CMakeLists.txt)
+          test -n "$version"
+          echo "${version}+g${GITHUB_SHA::7}" > "$RUNNER_TEMP/arcade-version.txt"
+          cat "$RUNNER_TEMP/arcade-version.txt"
+
+      - name: Deploy to arcade
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && vars.ARCADE_ENABLED == 'true')
+        uses: Stephenson-Software/arcade-deploy@v1
+        with:
+          slug: env-lib-cpp
+          token: ${{ secrets.ARCADE_TOKEN }}
+          site-dir: web-site
+          version-file: ${{ runner.temp }}/arcade-version.txt

@@ -23,7 +23,7 @@ cmake --build build-strata -j4
 build-strata/envlib_strata_demo --world meadow
 ```
 
-Both demo worlds also build for the browser (Emscripten, Strata's WebGL 2 backend); see [docs/STRATA.md](docs/STRATA.md#in-a-browser).
+Both demo worlds also build for the browser (Emscripten, Strata's WebGL 2 backend). **Try them in a browser:** <https://env-lib-cpp.play.danielstephenson.dev> (walkers and the meadow; drag to pan, tap a square to see who is there). See [docs/STRATA.md](docs/STRATA.md#in-a-browser).
 
 ## Classes
 Name | Description
