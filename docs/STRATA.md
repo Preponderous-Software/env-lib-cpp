@@ -143,6 +143,18 @@ desktop and an iPhone 13 profile (`strata/web/smoke/smoke.cjs`: both worlds
 tick and draw, Pause and Step, and a real click or tap picks the location
 under it).
 
+To measure the frame rate on a real device, open the page with `?bench`
+(<https://env-lib-cpp.play.danielstephenson.dev/?bench>). It opens the walkers
+from their first tick and turns the camera once around the grid, closing in
+and back out, for 15 seconds after a short warm-up, then shows the frame
+rate, the frame time (median and p95), the page's own work per frame, the GPU
+time where the browser offers WebGL 2 timer queries, the canvas size and
+device pixel ratio and the GPU's name, with a button that copies it all as
+text. `?bench=30` runs for 30 seconds. Nothing is sent anywhere.
+`strata/web/bench.js` is the harness; `strata/web/smoke/bench.cjs` checks in
+CI that a run finishes and shows its card on both profiles (it keeps no
+numbers: headless Chromium draws on the CPU).
+
 ## Tests
 
 - `[view]`: the copy, the no-pointer rule (an entity freed after `sync()`), an

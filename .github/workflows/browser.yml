@@ -57,7 +57,7 @@ jobs:
         run: |
           mkdir -p web-site
           cp build-web/envlib-strata.html web-site/index.html
-          cp build-web/envlib-strata.js build-web/envlib-strata.wasm web-site/
+          cp build-web/envlib-strata.js build-web/envlib-strata.wasm build-web/bench.js web-site/
           ls -l web-site
           echo "site: $(du -sh web-site | cut -f1)"
 
@@ -77,6 +77,11 @@ jobs:
           sleep 1
           node strata/web/smoke/smoke.cjs http://127.0.0.1:8080/ smoke-out/desktop
           node strata/web/smoke/smoke.cjs http://127.0.0.1:8080/ smoke-out/phone --phone
+
+      - name: Bench mode completes and shows its card (desktop, iPhone 13 profile)
+        run: |
+          node strata/web/smoke/bench.cjs "http://127.0.0.1:8080/?bench=3" smoke-out/bench-desktop
+          node strata/web/smoke/bench.cjs "http://127.0.0.1:8080/?bench=3" smoke-out/bench-phone --phone
 
       - name: Upload the site and the smoke screenshots
         if: always()
