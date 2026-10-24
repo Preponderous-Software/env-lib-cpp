@@ -14,7 +14,7 @@ Nothing in the library depends on it. `make`, `run_tests.sh` and the top-level
 
 CMake 3.24 or newer (Strata's minimum), a C++17 compiler, and the SDL3 build
 dependencies Strata needs on Linux (X11 development headers, EGL). Strata is
-fetched at the commit in `strata/strata.ref`, which is the `v0.4.0` release.
+fetched at the commit in `strata/strata.ref`, which is the `v0.6.0` release.
 
 ```
 cmake -S strata -B build-strata -DCMAKE_BUILD_TYPE=Release
@@ -68,6 +68,13 @@ envlib_strata::ViewerApp app(
 return app.run();
 ```
 
+When something else owns the loop (a browser, where the page must return to
+the browser between frames), call `start()` once and `frame()` once per
+callback instead of `run()`. `setWorld()` swaps in another environment on the
+same engine, and `key()`, `zoom()`, `rotate()`, `home()`, `pickAt()` and
+`status()` are what page buttons and a page's own text use. The browser build
+below does exactly that.
+
 A program that already has a Strata loop uses the two parts underneath:
 
 | Part | Job |
@@ -107,6 +114,32 @@ colour (the meadow's grass).
   primitives, so a click picks a **location** and lists its entities, rather
   than picking one entity.
 
+## In a browser
+
+The same `ViewerApp` builds with Emscripten against Strata's WebGL 2 backend
+(emsdk 6.0.11, Strata's pin). `strata/web/web_main.cpp` hands its frame to
+`emscripten_set_main_loop`, and `strata/web/shell.html` is the page: a button
+per demo world (walkers, meadow), a status line, the picked location's
+entities, and buttons for what keys do on the desktop (pause, step, slower,
+faster, turn, zoom, home, HUD). Drag pans, the wheel or a two-finger pinch
+zooms, and a click or tap picks a location.
+
+```
+source <emsdk>/emsdk_env.sh
+emcmake cmake -S strata -B build-web -DCMAKE_BUILD_TYPE=Release
+cmake --build build-web -j4
+ctest --test-dir build-web --output-on-failure   # the view tests, under Node
+cd build-web && python3 -m http.server 8000      # open /envlib-strata.html
+```
+
+`?world=meadow` (or `walkers`) in the URL picks the first world. The render
+tests and the desktop demo are not built for the browser (no EGL, and the
+desktop loop never returns). `.github/workflows/browser.yml` builds the page,
+runs the view tests as wasm, and smoke-tests it in headless Chromium on a
+desktop and an iPhone 13 profile (`strata/web/smoke/smoke.cjs`: both worlds
+tick and draw, Pause and Step, and a real click or tap picks the location
+under it).
+
 ## Tests
 
 - `[view]`: the copy, the no-pointer rule (an entity freed after `sync()`), an
@@ -123,10 +156,6 @@ colour (the meadow's grass).
 
 ## Not yet
 
-- **Browser build.** Strata v0.4.0 has a WebGL 2 build and `EnvironmentView`
-  and `Scene` use nothing desktop-only, but `ViewerApp`'s window loop would have
-  to be handed to `emscripten_set_main_loop`, and the page and its CI are a
-  follow-up.
 - **Picking one entity** among several in a location, and **instancing a custom
   mesh** per entity kind, would each need a Strata change first (primitive
   raycasts; instanced meshes). Neither is needed today.

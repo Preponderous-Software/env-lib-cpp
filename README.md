@@ -15,13 +15,15 @@ This C++ library provides base classes for creating 2D virtual worlds.
 
 *A larger demo world (`--world meadow`): sheep graze and wander, wolves stalk the nearest sheep, flowers stay put. The grass under each location is the demo's own state, shown as the floor colour.*
 
-The frontend reads an `Environment` and draws it with the [Strata](https://github.com/Preponderous-Software/strata) engine (v0.4.0). It never changes the world: CI runs each demo with and without drawing and compares the results. A consumer writes one callback that turns an `Entity` into a shape, colour and size; everything else (floor, camera, tweening, picking a location with the mouse, a HUD) is provided. It is opt-in and built separately with CMake, so the library above still needs nothing but a C++ compiler. See [docs/STRATA.md](docs/STRATA.md).
+The frontend reads an `Environment` and draws it with the [Strata](https://github.com/Preponderous-Software/strata) engine (v0.6.0). It never changes the world: CI runs each demo with and without drawing and compares the results. A consumer writes one callback that turns an `Entity` into a shape, colour and size; everything else (floor, camera, tweening, picking a location with the mouse, a HUD) is provided. It is opt-in and built separately with CMake, so the library above still needs nothing but a C++ compiler. See [docs/STRATA.md](docs/STRATA.md).
 
 ```
 cmake -S strata -B build-strata -DCMAKE_BUILD_TYPE=Release
 cmake --build build-strata -j4
 build-strata/envlib_strata_demo --world meadow
 ```
+
+Both demo worlds also build for the browser (Emscripten, Strata's WebGL 2 backend); see [docs/STRATA.md](docs/STRATA.md#in-a-browser).
 
 ## Classes
 Name | Description
