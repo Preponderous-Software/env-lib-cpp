@@ -1,2 +1,3 @@
 tests_executable
-tests_executable_asan
+tests_executable_asanbuild/
+build-*/
