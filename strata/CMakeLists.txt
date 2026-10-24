@@ -103,6 +103,8 @@ else()
         -sEXPORTED_RUNTIME_METHODS=ccall,cwrap
         "--shell-file=${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html")
     set_property(TARGET envlib_strata_web APPEND PROPERTY LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html")
+    # The page's ?bench mode (web/bench.js) is served next to it.
+    configure_file(web/bench.js "${CMAKE_CURRENT_BINARY_DIR}/bench.js" COPYONLY)
 endif()
 
 if(ENVLIB_STRATA_BUILD_TESTS)
