@@ -18,6 +18,7 @@
 #include "check.h"
 #include "envlib_strata/environment_view.h"
 #include "envlib_strata/scene.h"
+#include "envlib_strata/viewer_app.h"
 #include "strata/strata.hpp"
 #include "worlds.h"
 
@@ -172,4 +173,50 @@ TEST("a changed floor colour replaces the floor mesh; an unchanged one keeps it"
     }
     CHECK(threw);
     scene.releaseFloor(*engine);
+}
+
+TEST("ViewerApp a frame at a time: start, setWorld to another grid, pickAt, status", "[render]") {
+    // What the browser page does, on a headless surface: one engine, two worlds.
+    demo::Walkers walkers(7);
+    ViewerOptions o;
+    o.headless = true;
+    o.width = kW;
+    o.height = kH;
+    ViewerApp app(walkers.environment(), [&walkers] { walkers.tick(); }, o, walkers.style());
+    CHECK(app.status().ticks == 0);
+    REQUIRE(app.start());
+    ViewerStatus s = app.status();
+    CHECK(s.environment == "Earth");
+    CHECK(s.gridSize == 8);
+    CHECK(s.entities == 10);
+    CHECK(s.pickX == -1);
+    app.frame();  // headless has no window loop: a no-op, not a crash
+
+    // The middle of the drawable, with the camera fitted to an 8x8 grid, is
+    // a cell near the middle.
+    CHECK(app.pickAt(kW * 0.5f, kH * 0.5f));
+    s = app.status();
+    CHECK(s.pickX >= 3 && s.pickX <= 4);
+    CHECK(s.pickY >= 3 && s.pickY <= 4);
+    CHECK(!app.pickAt(1.0f, 1.0f));  // the sky corner
+    CHECK(app.status().pickX == -1);
+
+    demo::Meadow meadow(1);
+    app.setWorld(meadow.environment(), [&meadow] { meadow.tick(); }, meadow.style(), meadow.locationColor());
+    s = app.status();
+    CHECK(s.environment == "Meadow");
+    CHECK(s.gridSize == 20);
+    CHECK(s.ticks == 0);
+    CHECK(app.view().locationColors().size() == 400u);
+    CHECK(app.pickAt(kW * 0.5f, kH * 0.5f));
+    s = app.status();
+    CHECK(s.pickX >= 9 && s.pickX <= 10);
+
+    app.key(44);  // space pauses
+    CHECK(app.status().paused);
+    app.rotate(30.0f);
+    app.zoom(0.5f);
+    app.home();
+    app.stop();
+    CHECK(!app.running());
 }

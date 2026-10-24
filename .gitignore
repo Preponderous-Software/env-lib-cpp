@@ -1,3 +1,4 @@
 tests_executable
 tests_executable_asanbuild/
 build-*/
+node_modules/

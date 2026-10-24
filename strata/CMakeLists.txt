@@ -7,9 +7,15 @@
 #   cmake --build build-strata -j4
 #   ctest --test-dir build-strata --output-on-failure
 #
-# Strata is fetched at the commit in strata.ref (the v0.4.0 release), or taken
+# Strata is fetched at the commit in strata.ref (the v0.6.0 release), or taken
 # from a local checkout with -DFETCHCONTENT_SOURCE_DIR_STRATA=<path>.
 # See docs/STRATA.md.
+#
+# The browser build (Emscripten, Strata's WebGL 2 backend) is the same
+# directory under emcmake; it builds envlib-strata.html + .js + .wasm:
+#
+#   emcmake cmake -S strata -B build-web -DCMAKE_BUILD_TYPE=Release
+#   cmake --build build-web -j4
 cmake_minimum_required(VERSION 3.24)
 project(envlib_strata VERSION 0.1.0 LANGUAGES C CXX)
 
@@ -23,6 +29,15 @@ endif()
 option(ENVLIB_STRATA_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
 option(ENVLIB_STRATA_BUILD_TESTS "Build the tests" ON)
 option(ENVLIB_STRATA_RENDER_TESTS "Also build the headless render tests (need EGL + a GL 4.5 driver at run time)" ON)
+
+if(EMSCRIPTEN)
+    # Strata compiles C++ exceptions as wasm exceptions; everything in one
+    # .wasm must match (Strata's docs/WEB.md).
+    add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:-fwasm-exceptions>")
+    add_link_options(-fwasm-exceptions -sALLOW_MEMORY_GROWTH=1)
+    # No EGL in a browser: the render tests are desktop-only.
+    set(ENVLIB_STRATA_RENDER_TESTS OFF CACHE BOOL "" FORCE)
+endif()
 
 # env-lib-cpp itself, from the parent directory's CMakeLists.txt.
 add_subdirectory(.. envlibcpp EXCLUDE_FROM_ALL)
@@ -70,9 +85,25 @@ target_link_libraries(envlib_strata PUBLIC envlib_strata_view strata::static str
 envlib_strata_warnings(envlib_strata)
 add_library(envlib_strata::envlib_strata ALIAS envlib_strata)
 
-add_executable(envlib_strata_demo app/demo.cpp)
-target_link_libraries(envlib_strata_demo PRIVATE envlib_strata)
-envlib_strata_warnings(envlib_strata_demo)
+if(NOT EMSCRIPTEN)
+    add_executable(envlib_strata_demo app/demo.cpp)
+    target_link_libraries(envlib_strata_demo PRIVATE envlib_strata)
+    envlib_strata_warnings(envlib_strata_demo)
+else()
+    # The demo worlds in a page: envlib-strata.html (+ .js, .wasm), served as
+    # index.html. web/shell.html is the page around the canvas.
+    add_executable(envlib_strata_web web/web_main.cpp)
+    target_include_directories(envlib_strata_web PRIVATE app)
+    target_link_libraries(envlib_strata_web PRIVATE envlib_strata)
+    envlib_strata_warnings(envlib_strata_web)
+    set_target_properties(envlib_strata_web PROPERTIES OUTPUT_NAME envlib-strata SUFFIX ".html")
+    target_link_options(envlib_strata_web PRIVATE
+        -sSTACK_SIZE=1MB
+        "-sEXPORTED_FUNCTIONS=_main,_envlib_open,_envlib_resize,_envlib_key,_envlib_zoom,_envlib_rotate,_envlib_home,_envlib_pick,_envlib_status"
+        -sEXPORTED_RUNTIME_METHODS=ccall,cwrap
+        "--shell-file=${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html")
+    set_property(TARGET envlib_strata_web APPEND PROPERTY LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html")
+endif()
 
 if(ENVLIB_STRATA_BUILD_TESTS)
     enable_testing()
