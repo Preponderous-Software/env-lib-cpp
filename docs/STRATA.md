@@ -116,6 +116,9 @@ colour (the meadow's grass).
 
 ## In a browser
 
+Live at <https://env-lib-cpp.play.danielstephenson.dev>: every push to
+`master` deploys it to arcade through `browser.yml`.
+
 The same `ViewerApp` builds with Emscripten against Strata's WebGL 2 backend
 (emsdk 6.0.11, Strata's pin). `strata/web/web_main.cpp` hands its frame to
 `emscripten_set_main_loop`, and `strata/web/shell.html` is the page: a button
