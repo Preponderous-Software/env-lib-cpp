@@ -14,7 +14,7 @@ Nothing in the library depends on it. `make`, `run_tests.sh` and the top-level
 
 CMake 3.24 or newer (Strata's minimum), a C++17 compiler, and the SDL3 build
 dependencies Strata needs on Linux (X11 development headers, EGL). Strata is
-fetched at the commit in `strata/strata.ref`, which is the `v0.6.0` release.
+fetched at the commit in `strata/strata.ref`, which is the `v0.7.0` release.
 
 ```
 cmake -S strata -B build-strata -DCMAKE_BUILD_TYPE=Release

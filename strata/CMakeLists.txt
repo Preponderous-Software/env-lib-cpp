@@ -7,7 +7,7 @@
 #   cmake --build build-strata -j4
 #   ctest --test-dir build-strata --output-on-failure
 #
-# Strata is fetched at the commit in strata.ref (the v0.6.0 release), or taken
+# Strata is fetched at the commit in strata.ref (the v0.7.0 release), or taken
 # from a local checkout with -DFETCHCONTENT_SOURCE_DIR_STRATA=<path>.
 # See docs/STRATA.md.
 #
