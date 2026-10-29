@@ -7,6 +7,7 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <assert.h>
 
 #include "header/entity.h"
@@ -791,6 +792,99 @@ void testSettingEntityEnvironmentAndGridIds() {
     std::cout << " --- " << "Success" << std::endl;
 }
 
+void testRetrievingFirstEntityFromEmptyEnvironmentThrows() {
+    std::cout << "Test 48 - Retrieving the first entity from an empty environment throws";
+    Environment environment(0, "Earth", 2);
+    bool threw = false;
+    try {
+        environment.getFirstEntity();
+    } catch (const std::runtime_error& e) {
+        threw = true;
+    }
+    assert(threw == true);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testRetrievingUnknownEntityByIdThrowsListingFoundIds() {
+    std::cout << "Test 49 - Retrieving an unknown entity by id throws and lists the ids found";
+    Environment environment(0, "Earth", 2);
+    Entity entity(3, "Daniel");
+    environment.addEntity(entity);
+    std::string message = "";
+    try {
+        environment.getEntity(5);
+    } catch (const std::runtime_error& e) {
+        message = e.what();
+    }
+    assert(message.find("'5'") != std::string::npos);
+    assert(message.find("'Earth'") != std::string::npos);
+    assert(message.find("found: 3, ") != std::string::npos);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testRetrievingUnknownLocationThrows() {
+    std::cout << "Test 50 - Retrieving a location the grid does not have throws";
+    Grid grid(0, 2);
+    bool threwById = false;
+    try {
+        grid.getLocation("no-such-location");
+    } catch (const std::runtime_error& e) {
+        threwById = true;
+    }
+    bool threwByCoordinates = false;
+    try {
+        grid.getLocationByCoordinates(2, 0);
+    } catch (const std::runtime_error& e) {
+        threwByCoordinates = true;
+    }
+    assert(threwById == true);
+    assert(threwByCoordinates == true);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testMovingEntityToUnknownLocationThrowsAndLeavesEntityInPlace() {
+    std::cout << "Test 51 - Moving an entity to an unknown location throws and leaves it in place";
+    Environment environment(0, "Earth", 2);
+    Entity entity(0, "Daniel");
+    Location& start = environment.getGrid()->getLocationByCoordinates(1, 1);
+    environment.addEntityToLocation(entity, start);
+    bool threw = false;
+    try {
+        environment.moveEntityToNewLocation(0, "no-such-location");
+    } catch (const std::runtime_error& e) {
+        threw = true;
+    }
+    assert(threw == true);
+    assert(entity.getLocationId() == "0-1-1");
+    assert(entity.getEnvironmentId() == 0);
+    assert(environment.getGrid()->getLocation("0-1-1").isEntityPresent(&entity) == true);
+    assert(environment.getNumEntities() == 1);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testMovingUnknownEntityThrows() {
+    std::cout << "Test 52 - Moving an entity id that is not in the environment throws";
+    Environment environment(0, "Earth", 2);
+    Entity entity(0, "Daniel");
+    environment.addEntity(entity);
+    bool threwToNewLocation = false;
+    try {
+        environment.moveEntityToNewLocation(9, "0-0-0");
+    } catch (const std::runtime_error& e) {
+        threwToNewLocation = true;
+    }
+    bool threwDirectional = false;
+    try {
+        environment.moveEntityUp(9);
+    } catch (const std::runtime_error& e) {
+        threwDirectional = true;
+    }
+    assert(threwToNewLocation == true);
+    assert(threwDirectional == true);
+    assert(environment.getNumEntities() == 1);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
 void seedRandomNumberGenerator() {
     srand (time (NULL));
 }
@@ -847,5 +941,10 @@ int main() {
     testSettingEntityName();
     testSettingEntityId();
     testSettingEntityEnvironmentAndGridIds();
+    testRetrievingFirstEntityFromEmptyEnvironmentThrows();
+    testRetrievingUnknownEntityByIdThrowsListingFoundIds();
+    testRetrievingUnknownLocationThrows();
+    testMovingEntityToUnknownLocationThrowsAndLeavesEntityInPlace();
+    testMovingUnknownEntityThrows();
     return 0;
 }
