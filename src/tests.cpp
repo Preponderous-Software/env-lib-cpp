@@ -885,6 +885,73 @@ void testMovingUnknownEntityThrows() {
     std::cout << " --- " << "Success" << std::endl;
 }
 
+void testGeneratingGridLocationIdsRowByRow() {
+    std::cout << "Test 53 - Generating grid location ids row by row";
+    Grid grid(3, 3);
+    std::vector<Location>& locations = grid.getLocations();
+    assert(locations.size() == 9);
+    for (int y = 0; y < 3; y++) {
+        for (int x = 0; x < 3; x++) {
+            Location& location = locations[y * 3 + x];
+            assert(location.getX() == x);
+            assert(location.getY() == y);
+            assert(location.getId() == "3-" + std::to_string(x) + "-" + std::to_string(y));
+        }
+    }
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testSettingGridIdAndSizeLeavesLocationsUnchanged() {
+    std::cout << "Test 54 - Setting grid id and size leaves existing locations unchanged";
+    Grid grid(3, 2);
+    grid.setId(9);
+    grid.setSize(5);
+    assert(grid.getId() == 9);
+    assert(grid.getSize() == 5);
+    assert(grid.getLocations().size() == 4);
+    assert(grid.getFirstLocation().getId() == "3-0-0");
+    assert(grid.getLocations().back().getId() == "3-1-1");
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testMovingEntityOffGridEdgeReturnsFalse() {
+    std::cout << "Test 55 - Moving an entity off the grid edge returns false and leaves it in place";
+    Environment environment(0, "Earth", 3);
+    Entity entity(0, "Daniel");
+    environment.addEntityToLocation(entity, environment.getGrid()->getLocationByCoordinates(0, 0));
+    assert(environment.moveEntityUp(0) == false);
+    assert(entity.getLocationId() == "0-0-0");
+    assert(environment.moveEntityLeft(0) == false);
+    assert(entity.getLocationId() == "0-0-0");
+    assert(environment.getGrid()->getLocation("0-0-0").isEntityPresent(&entity) == true);
+
+    environment.moveEntityToNewLocation(0, "0-2-2");
+    assert(environment.moveEntityDown(0) == false);
+    assert(entity.getLocationId() == "0-2-2");
+    assert(environment.moveEntityRight(0) == false);
+    assert(entity.getLocationId() == "0-2-2");
+    assert(environment.getNumEntities() == 1);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testMovingEntityInEachDirectionFollowsYDownCoordinates() {
+    std::cout << "Test 56 - Moving an entity in each direction follows y-down coordinates";
+    Environment environment(0, "Earth", 3);
+    Entity entity(0, "Daniel");
+    environment.addEntityToLocation(entity, environment.getGrid()->getLocationByCoordinates(1, 1));
+    assert(environment.moveEntityUp(0) == true);
+    assert(entity.getLocationId() == "0-1-0");
+    assert(environment.moveEntityRight(0) == true);
+    assert(entity.getLocationId() == "0-2-0");
+    assert(environment.moveEntityDown(0) == true);
+    assert(entity.getLocationId() == "0-2-1");
+    assert(environment.moveEntityLeft(0) == true);
+    assert(entity.getLocationId() == "0-1-1");
+    assert(environment.getGrid()->getLocation("0-1-1").isEntityPresent(&entity) == true);
+    assert(environment.getNumEntities() == 1);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
 void seedRandomNumberGenerator() {
     srand (time (NULL));
 }
@@ -946,5 +1013,9 @@ int main() {
     testRetrievingUnknownLocationThrows();
     testMovingEntityToUnknownLocationThrowsAndLeavesEntityInPlace();
     testMovingUnknownEntityThrows();
+    testGeneratingGridLocationIdsRowByRow();
+    testSettingGridIdAndSizeLeavesLocationsUnchanged();
+    testMovingEntityOffGridEdgeReturnsFalse();
+    testMovingEntityInEachDirectionFollowsYDownCoordinates();
     return 0;
 }
