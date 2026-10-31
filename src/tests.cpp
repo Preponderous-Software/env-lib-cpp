@@ -952,6 +952,58 @@ void testMovingEntityInEachDirectionFollowsYDownCoordinates() {
     std::cout << " --- " << "Success" << std::endl;
 }
 
+void testPlacingAndRemovingEntityResetsAllIds() {
+    std::cout << "Test 57 - Placing and removing an entity sets and then resets all of its ids";
+    Entity entity(0, "Daniel");
+    assert(entity.getEnvironmentId() == -1);
+    assert(entity.getGridId() == -1);
+    assert(entity.getLocationId() == "N/S");
+    Environment environment(4, "Earth", 2);
+    environment.addEntityToLocation(entity, environment.getGrid()->getLocationByCoordinates(1, 0));
+    assert(entity.getEnvironmentId() == 4);
+    assert(entity.getGridId() == 4);
+    assert(entity.getLocationId() == "4-1-0");
+    environment.removeEntity(entity);
+    assert(entity.getEnvironmentId() == -1);
+    assert(entity.getGridId() == -1);
+    assert(entity.getLocationId() == "N/S");
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testEntitiesSharingAnIdAreMatchedAsTheSameEntity() {
+    std::cout << "Test 58 - Entities sharing an id are matched as the same entity";
+    Environment environment(0, "Earth", 2);
+    Entity original(5, "Daniel");
+    Entity twin(5, "Bob");
+    Location& location = environment.getGrid()->getLocationByCoordinates(0, 0);
+    environment.addEntityToLocation(original, location);
+    assert(location.isEntityPresent(&twin) == true);
+    assert(environment.isEntityPresent(twin) == true);
+    assert(&environment.getEntity(5) == &original);
+    location.removeEntity(&twin);
+    assert(location.getNumEntities() == 0);
+    assert(environment.isEntityPresent(original) == false);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testAddingEntityTwiceStoresItTwice() {
+    std::cout << "Test 59 - Adding an entity twice stores it twice";
+    Environment environment(0, "Earth", 2);
+    Entity entity(0, "Daniel");
+    Location& first = environment.getGrid()->getLocationByCoordinates(0, 0);
+    Location& second = environment.getGrid()->getLocationByCoordinates(1, 1);
+    environment.addEntityToLocation(entity, first);
+    environment.addEntityToLocation(entity, first);
+    assert(first.getNumEntities() == 2);
+    assert(environment.getNumEntities() == 2);
+    environment.addEntityToLocation(entity, second);
+    assert(first.getNumEntities() == 2);
+    assert(second.getNumEntities() == 1);
+    assert(environment.getNumEntities() == 3);
+    assert(entity.getLocationId() == "0-1-1");
+    std::cout << " --- " << "Success" << std::endl;
+}
+
 void seedRandomNumberGenerator() {
     srand (time (NULL));
 }
@@ -1017,5 +1069,8 @@ int main() {
     testSettingGridIdAndSizeLeavesLocationsUnchanged();
     testMovingEntityOffGridEdgeReturnsFalse();
     testMovingEntityInEachDirectionFollowsYDownCoordinates();
+    testPlacingAndRemovingEntityResetsAllIds();
+    testEntitiesSharingAnIdAreMatchedAsTheSameEntity();
+    testAddingEntityTwiceStoresItTwice();
     return 0;
 }
