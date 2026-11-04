@@ -1004,6 +1004,141 @@ void testAddingEntityTwiceStoresItTwice() {
     std::cout << " --- " << "Success" << std::endl;
 }
 
+std::string captureConsoleRepresentation(Environment& environment) {
+    std::ostringstream buffer;
+    std::streambuf* previousBuffer = std::cout.rdbuf(buffer.rdbuf());
+    environment.printConsoleRepresentation();
+    std::cout.rdbuf(previousBuffer);
+    return buffer.str();
+}
+
+void testPrintingConsoleRepresentationRowByRow() {
+    std::cout << "Test 60 - Printing the console representation row by row";
+    Environment environment(0, "Earth", 2);
+    assert(captureConsoleRepresentation(environment) == "[ ] [ ] \n[ ] [ ] \n\n");
+    Entity entity(0, "Daniel");
+    environment.addEntityToLocation(entity, environment.getGrid()->getLocationByCoordinates(1, 0));
+    assert(captureConsoleRepresentation(environment) == "[ ] [x] \n[ ] [ ] \n\n");
+    environment.moveEntityDown(0);
+    assert(captureConsoleRepresentation(environment) == "[ ] [ ] \n[ ] [x] \n\n");
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testPrintingConsoleRepresentationMisalignsAfterSettingGridSize() {
+    std::cout << "Test 61 - Printing the console representation misaligns after setting the grid size";
+    Environment environment(0, "Earth", 2);
+    environment.getGrid()->setSize(3);
+    assert(captureConsoleRepresentation(environment) == "[ ] [ ] [ ] \n[ ] \n");
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testRetrievingFirstEntityFollowsLocationOrder() {
+    std::cout << "Test 62 - Retrieving the first entity follows location order, not insertion order";
+    Environment environment(0, "Earth", 2);
+    Entity addedFirst(1, "Daniel");
+    Entity addedSecond(2, "Bob");
+    environment.addEntityToLocation(addedFirst, environment.getGrid()->getLocationByCoordinates(0, 1));
+    environment.addEntityToLocation(addedSecond, environment.getGrid()->getLocationByCoordinates(1, 0));
+    assert(&environment.getFirstEntity() == &addedSecond);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testRemovingLocationLeavesEntityEnvironmentIdUnchanged() {
+    std::cout << "Test 63 - Removing a location leaves the environment id of its entities unchanged";
+    Environment environment(5, "Earth", 2);
+    Entity entity(0, "Daniel");
+    Location& location = environment.getGrid()->getLocationByCoordinates(0, 0);
+    environment.addEntityToLocation(entity, location);
+    environment.getGrid()->removeLocation(location);
+    assert(entity.getEnvironmentId() == 5);
+    assert(entity.getGridId() == -1);
+    assert(entity.getLocationId() == "N/S");
+    assert(environment.isEntityPresent(entity) == false);
+    assert(environment.getNumEntities() == 0);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testAddingLocationToGridStoresACopy() {
+    std::cout << "Test 64 - Adding a location to a grid stores a copy of it";
+    Grid grid(0, 2);
+    Location original("extra-location", 10, 10);
+    grid.addLocation(original);
+    Entity entity(0, "Daniel");
+    original.addEntity(&entity);
+    assert(original.getNumEntities() == 1);
+    assert(grid.getLocation("extra-location").getNumEntities() == 0);
+    assert(grid.isEntityPresent(entity) == false);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testMovingEntityInSingleLocationGridAlwaysReturnsFalse() {
+    std::cout << "Test 65 - Moving an entity in a single-location grid always returns false";
+    Environment environment(0, "Earth", 1);
+    Entity entity(0, "Daniel");
+    environment.addEntity(entity);
+    assert(entity.getLocationId() == "0-0-0");
+    assert(environment.moveEntityUp(0) == false);
+    assert(environment.moveEntityRight(0) == false);
+    assert(environment.moveEntityDown(0) == false);
+    assert(environment.moveEntityLeft(0) == false);
+    for (size_t i = 0; i < 20; i++) {
+        assert(environment.moveEntityToRandomAdjacentLocation(0) == false);
+    }
+    assert(entity.getLocationId() == "0-0-0");
+    assert(environment.getNumEntities() == 1);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testRemovingEntityAddedTwiceToOneLocationLeavesOnePointer() {
+    std::cout << "Test 66 - Removing an entity added twice to one location leaves one pointer behind";
+    Environment environment(0, "Earth", 2);
+    Entity entity(0, "Daniel");
+    Location& location = environment.getGrid()->getLocationByCoordinates(0, 0);
+    environment.addEntityToLocation(entity, location);
+    environment.addEntityToLocation(entity, location);
+    environment.removeEntity(entity);
+    assert(location.getNumEntities() == 1);
+    assert(environment.isEntityPresent(entity) == true);
+    assert(entity.getEnvironmentId() == -1);
+    assert(entity.getGridId() == -1);
+    assert(entity.getLocationId() == "N/S");
+    bool threw = false;
+    try {
+        environment.moveEntityUp(0);
+    } catch (const std::runtime_error& e) {
+        threw = true;
+    }
+    assert(threw == true);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testRemovingEntityAddedToTwoLocationsRemovesBoth() {
+    std::cout << "Test 67 - Removing an entity added to two locations removes it from both";
+    Environment environment(0, "Earth", 2);
+    Entity entity(0, "Daniel");
+    environment.addEntityToLocation(entity, environment.getGrid()->getLocationByCoordinates(0, 0));
+    environment.addEntityToLocation(entity, environment.getGrid()->getLocationByCoordinates(1, 1));
+    environment.removeEntity(entity);
+    assert(environment.isEntityPresent(entity) == false);
+    assert(environment.getNumEntities() == 0);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testRemovingEntityViaSameIdTwinLeavesOriginalIdsStale() {
+    std::cout << "Test 68 - Removing an entity via a same-id twin leaves the original's ids stale";
+    Environment environment(0, "Earth", 2);
+    Entity original(5, "Daniel");
+    Entity twin(5, "Bob");
+    environment.addEntityToLocation(original, environment.getGrid()->getLocationByCoordinates(1, 0));
+    environment.removeEntity(twin);
+    assert(environment.isEntityPresent(original) == false);
+    assert(environment.getNumEntities() == 0);
+    assert(original.getEnvironmentId() == 0);
+    assert(original.getGridId() == 0);
+    assert(original.getLocationId() == "0-1-0");
+    std::cout << " --- " << "Success" << std::endl;
+}
+
 void seedRandomNumberGenerator() {
     srand (time (NULL));
 }
@@ -1072,5 +1207,14 @@ int main() {
     testPlacingAndRemovingEntityResetsAllIds();
     testEntitiesSharingAnIdAreMatchedAsTheSameEntity();
     testAddingEntityTwiceStoresItTwice();
+    testPrintingConsoleRepresentationRowByRow();
+    testPrintingConsoleRepresentationMisalignsAfterSettingGridSize();
+    testRetrievingFirstEntityFollowsLocationOrder();
+    testRemovingLocationLeavesEntityEnvironmentIdUnchanged();
+    testAddingLocationToGridStoresACopy();
+    testMovingEntityInSingleLocationGridAlwaysReturnsFalse();
+    testRemovingEntityAddedTwiceToOneLocationLeavesOnePointer();
+    testRemovingEntityAddedToTwoLocationsRemovesBoth();
+    testRemovingEntityViaSameIdTwinLeavesOriginalIdsStale();
     return 0;
 }
