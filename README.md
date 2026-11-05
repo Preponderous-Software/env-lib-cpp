@@ -67,7 +67,7 @@ A newly constructed entity has an environment id and grid id of `-1` and a locat
 
 Adding is likewise unchecked. `addEntity` and `addEntityToLocation` do not test whether the entity is already present, so adding it a second time stores a second pointer to it (in another location, or in the same one), its location id names only the most recent location, and `getNumEntities` counts it twice. To relocate an entity that is already placed, use `moveEntityToNewLocation` or one of the directional move methods, which remove it before adding it again.
 
-Removal takes out at most one pointer per location. An entity added to two different locations is removed from both, but one added twice to the same location keeps a pointer there after `removeEntity`: it is still present and still counted, while its ids have already been reset, so a directional move then throws `std::runtime_error` because its location id `"N/S"` names no location.
+Removal takes out every pointer with a matching id. An entity added to two different locations is removed from both, and one added twice to the same location is removed entirely, so a move leaves a single pointer at the destination. Since matching is by id, a distinct same-id twin stored in that location is taken out too, and that twin keeps its ids.
 
 `Grid::removeLocation` also detaches any entities in the removed location: it resets their location id to `"N/S"` and their grid id to `-1`. It leaves their environment id unchanged, since the grid has no knowledge of its environment.
 

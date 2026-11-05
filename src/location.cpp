@@ -1,5 +1,6 @@
 #include "header/location.h"
 
+#include <algorithm>
 #include <iostream>
 
 namespace envlibcpp {
@@ -31,16 +32,13 @@ namespace envlibcpp {
     }
     
     void Location::removeEntity(Entity* entity) {
-        int index = -1;
-        for (size_t i = 0; i < getNumEntities(); i++) {
-            if (entities[i]->getId() == entity->getId()) {
-                index = i;
-                break;
-            }
-        }
+        // every match goes, since an entity added twice is stored twice and must not stay present
+        auto newEnd = std::remove_if(entities.begin(), entities.end(), [entity](Entity* e) {
+            return e->getId() == entity->getId();
+        });
         // an entity that is not in this location keeps its location id
-        if (index != -1) {
-            entities.erase(entities.begin() + index);
+        if (newEnd != entities.end()) {
+            entities.erase(newEnd, entities.end());
             entity->resetLocationId();
         }
     }
