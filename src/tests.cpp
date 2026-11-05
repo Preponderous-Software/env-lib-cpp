@@ -1089,26 +1089,20 @@ void testMovingEntityInSingleLocationGridAlwaysReturnsFalse() {
     std::cout << " --- " << "Success" << std::endl;
 }
 
-void testRemovingEntityAddedTwiceToOneLocationLeavesOnePointer() {
-    std::cout << "Test 66 - Removing an entity added twice to one location leaves one pointer behind";
+void testRemovingEntityAddedTwiceToOneLocationRemovesBothPointers() {
+    std::cout << "Test 66 - Removing an entity added twice to one location removes both pointers";
     Environment environment(0, "Earth", 2);
     Entity entity(0, "Daniel");
     Location& location = environment.getGrid()->getLocationByCoordinates(0, 0);
     environment.addEntityToLocation(entity, location);
     environment.addEntityToLocation(entity, location);
     environment.removeEntity(entity);
-    assert(location.getNumEntities() == 1);
-    assert(environment.isEntityPresent(entity) == true);
+    assert(location.getNumEntities() == 0);
+    assert(environment.isEntityPresent(entity) == false);
+    assert(environment.getNumEntities() == 0);
     assert(entity.getEnvironmentId() == -1);
     assert(entity.getGridId() == -1);
     assert(entity.getLocationId() == "N/S");
-    bool threw = false;
-    try {
-        environment.moveEntityUp(0);
-    } catch (const std::runtime_error& e) {
-        threw = true;
-    }
-    assert(threw == true);
     std::cout << " --- " << "Success" << std::endl;
 }
 
@@ -1136,6 +1130,69 @@ void testRemovingEntityViaSameIdTwinLeavesOriginalIdsStale() {
     assert(original.getEnvironmentId() == 0);
     assert(original.getGridId() == 0);
     assert(original.getLocationId() == "0-1-0");
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testRemovingEntityFromLocationRemovesEveryPointerAndKeepsOrder() {
+    std::cout << "Test 69 - Removing an entity from a location removes every pointer and keeps the others in order";
+    Location location("test-location", 0, 0);
+    Entity first(1, "Daniel");
+    Entity repeated(2, "Bob");
+    Entity last(3, "Alice");
+    location.addEntity(&repeated);
+    location.addEntity(&first);
+    location.addEntity(&repeated);
+    location.addEntity(&last);
+    location.removeEntity(&repeated);
+    assert(location.getNumEntities() == 2);
+    assert(location.isEntityPresent(&repeated) == false);
+    assert(location.getEntities()[0] == &first);
+    assert(location.getEntities()[1] == &last);
+    assert(repeated.getLocationId() == "N/S");
+    assert(first.getLocationId() == "test-location");
+    assert(last.getLocationId() == "test-location");
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testMovingEntityAddedTwiceToOneLocationLeavesASinglePointer() {
+    std::cout << "Test 70 - Moving an entity added twice to one location leaves a single pointer at the destination";
+    Environment environment(0, "Earth", 2);
+    Entity entity(0, "Daniel");
+    Location& start = environment.getGrid()->getLocationByCoordinates(0, 0);
+    Location& right = environment.getGrid()->getLocationByCoordinates(1, 0);
+    Location& corner = environment.getGrid()->getLocationByCoordinates(1, 1);
+    environment.addEntityToLocation(entity, start);
+    environment.addEntityToLocation(entity, start);
+    assert(environment.moveEntityRight(0) == true);
+    assert(start.getNumEntities() == 0);
+    assert(right.getNumEntities() == 1);
+    assert(environment.getNumEntities() == 1);
+    assert(entity.getLocationId() == right.getId());
+
+    environment.addEntityToLocation(entity, right);
+    environment.moveEntityToNewLocation(0, corner.getId());
+    assert(right.getNumEntities() == 0);
+    assert(corner.getNumEntities() == 1);
+    assert(environment.getNumEntities() == 1);
+    assert(entity.getLocationId() == corner.getId());
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testRemovingEntityAlsoRemovesSameIdTwinInItsLocation() {
+    std::cout << "Test 71 - Removing an entity also removes a same-id twin stored in its location";
+    Environment environment(0, "Earth", 2);
+    Entity original(5, "Daniel");
+    Entity twin(5, "Bob");
+    Location& location = environment.getGrid()->getLocationByCoordinates(1, 0);
+    environment.addEntityToLocation(original, location);
+    environment.addEntityToLocation(twin, location);
+    environment.removeEntity(original);
+    assert(location.getNumEntities() == 0);
+    assert(environment.getNumEntities() == 0);
+    assert(original.getLocationId() == "N/S");
+    assert(twin.getEnvironmentId() == 0);
+    assert(twin.getGridId() == 0);
+    assert(twin.getLocationId() == "0-1-0");
     std::cout << " --- " << "Success" << std::endl;
 }
 
@@ -1213,8 +1270,11 @@ int main() {
     testRemovingLocationLeavesEntityEnvironmentIdUnchanged();
     testAddingLocationToGridStoresACopy();
     testMovingEntityInSingleLocationGridAlwaysReturnsFalse();
-    testRemovingEntityAddedTwiceToOneLocationLeavesOnePointer();
+    testRemovingEntityAddedTwiceToOneLocationRemovesBothPointers();
     testRemovingEntityAddedToTwoLocationsRemovesBoth();
     testRemovingEntityViaSameIdTwinLeavesOriginalIdsStale();
+    testRemovingEntityFromLocationRemovesEveryPointerAndKeepsOrder();
+    testMovingEntityAddedTwiceToOneLocationLeavesASinglePointer();
+    testRemovingEntityAlsoRemovesSameIdTwinInItsLocation();
     return 0;
 }
