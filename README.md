@@ -69,7 +69,7 @@ Adding is likewise unchecked. `addEntity` and `addEntityToLocation` do not test 
 
 Removal takes out every pointer with a matching id. An entity added to two different locations is removed from both, and one added twice to the same location is removed entirely, so a move leaves a single pointer at the destination. Since matching is by id, a distinct same-id twin stored in that location is taken out too, and that twin keeps its ids.
 
-`Grid::removeLocation` also detaches any entities in the removed location: it resets their location id to `"N/S"` and their grid id to `-1`. It leaves their environment id unchanged, since the grid has no knowledge of its environment.
+`Grid::removeLocation` also detaches any entities in the removed location: it resets their location id to `"N/S"` and their grid id to `-1`. It leaves their environment id unchanged, since the grid has no knowledge of its environment. An entity that is also stored in another location of the grid stays placed there: it keeps its grid id, and if its location id named the removed location, it now names a location that still holds it. This check compares addresses, so a same-id twin elsewhere does not count.
 
 ## Errors
 

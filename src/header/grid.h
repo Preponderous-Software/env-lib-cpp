@@ -36,6 +36,7 @@ namespace envlibcpp {
             std::vector<Location> locations;
 
             void generateLocations();
+            void updateIdsOfDetachedEntity(Entity* entity, std::string removedLocationId);
     };
 }
 
