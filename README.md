@@ -69,7 +69,7 @@ Adding is likewise unchecked. `addEntity` and `addEntityToLocation` do not test 
 
 Removal takes out every pointer with a matching id. An entity added to two different locations is removed from both, and one added twice to the same location is removed entirely, so a move leaves a single pointer at the destination. Since matching is by id, a distinct same-id twin stored in that location is taken out too, and that twin keeps its ids.
 
-`Grid::removeLocation` also detaches any entities in the removed location: it resets their location id to `"N/S"` and their grid id to `-1`. It leaves their environment id unchanged, since the grid has no knowledge of its environment.
+`Grid::removeLocation` also detaches any entities in the removed location: it resets their location id to `"N/S"` and their grid id to `-1`. It leaves their environment id unchanged, since the grid has no knowledge of its environment. An entity that is also stored in another location of the grid stays placed there: it keeps its grid id, and if its location id named the removed location, it now names a location that still holds it. This check compares addresses, so a same-id twin elsewhere does not count.
 
 ## Errors
 
@@ -77,7 +77,7 @@ Lookups that find nothing throw `std::runtime_error`:
 
 - `Environment::getFirstEntity`, when the environment contains no entities.
 - `Environment::getEntity`, when no entity has the given id. The message lists the ids that were found.
-- `Grid::getLocation` and `Grid::getLocationByCoordinates`, when no location matches.
+- `Grid::getLocation` and `Grid::getLocationByCoordinates`, when no location matches. The message names the id or coordinates requested and the grid's id.
 
 `Environment::moveEntityToNewLocation` looks up both the entity and the destination before moving anything, so an unknown entity id or location id throws and leaves the entity in place. The directional move methods catch the off-grid case and return `false`, but still throw if `entityId` does not name an entity in the environment.
 

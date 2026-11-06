@@ -1196,6 +1196,97 @@ void testRemovingEntityAlsoRemovesSameIdTwinInItsLocation() {
     std::cout << " --- " << "Success" << std::endl;
 }
 
+void testRemovingLocationKeepsIdsOfEntityStillPlacedElsewhere() {
+    std::cout << "Test 72 - Removing a location keeps the ids of an entity still placed in another location";
+    Environment environment(5, "Earth", 2);
+    Entity entity(0, "Daniel");
+    Grid* grid = environment.getGrid();
+    environment.addEntityToLocation(entity, grid->getLocationByCoordinates(0, 0));
+    environment.addEntityToLocation(entity, grid->getLocationByCoordinates(1, 1));
+    grid->removeLocation(grid->getLocationByCoordinates(0, 0));
+    assert(environment.isEntityPresent(entity) == true);
+    assert(environment.getNumEntities() == 1);
+    assert(entity.getEnvironmentId() == 5);
+    assert(entity.getGridId() == 5);
+    assert(entity.getLocationId() == "5-1-1");
+    assert(environment.moveEntityUp(0) == true);
+    assert(entity.getLocationId() == "5-1-0");
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testRemovingLocationNamedByEntityPointsItAtARemainingLocation() {
+    std::cout << "Test 73 - Removing the location an entity names points it at a location still holding it";
+    Environment environment(5, "Earth", 2);
+    Entity entity(0, "Daniel");
+    Grid* grid = environment.getGrid();
+    environment.addEntityToLocation(entity, grid->getLocationByCoordinates(1, 1));
+    environment.addEntityToLocation(entity, grid->getLocationByCoordinates(0, 0));
+    assert(entity.getLocationId() == "5-0-0");
+    grid->removeLocation(grid->getLocationByCoordinates(0, 0));
+    assert(environment.getNumEntities() == 1);
+    assert(entity.getGridId() == 5);
+    assert(entity.getLocationId() == "5-1-1");
+    assert(grid->getLocation(entity.getLocationId()).isEntityPresent(&entity) == true);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testRemovingLocationDetachesEntityDespiteSameIdTwinElsewhere() {
+    std::cout << "Test 74 - Removing a location detaches an entity even if a same-id twin is placed elsewhere";
+    Environment environment(5, "Earth", 2);
+    Entity original(7, "Daniel");
+    Entity twin(7, "Bob");
+    Grid* grid = environment.getGrid();
+    environment.addEntityToLocation(original, grid->getLocationByCoordinates(0, 0));
+    environment.addEntityToLocation(twin, grid->getLocationByCoordinates(1, 1));
+    grid->removeLocation(grid->getLocationByCoordinates(0, 0));
+    assert(original.getGridId() == -1);
+    assert(original.getLocationId() == "N/S");
+    assert(twin.getGridId() == 5);
+    assert(twin.getLocationId() == "5-1-1");
+    assert(environment.getNumEntities() == 1);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testRemovingLocationsSharingAnIdDetachesEntityInBoth() {
+    std::cout << "Test 75 - Removing locations that share an id detaches an entity placed in both";
+    Grid grid(0, 1);
+    Location extra("extra-location", 5, 5);
+    grid.addLocation(extra);
+    grid.addLocation(extra);
+    Entity entity(0, "Daniel");
+    grid.getLocations()[1].addEntity(&entity);
+    grid.getLocations()[2].addEntity(&entity);
+    entity.setGridId(0);
+    grid.removeLocation(extra);
+    assert(grid.getLocations().size() == 1);
+    assert(grid.getNumEntities() == 0);
+    assert(entity.getGridId() == -1);
+    assert(entity.getLocationId() == "N/S");
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testLocationLookupErrorsNameWhatWasLookedUp() {
+    std::cout << "Test 76 - Location lookup errors name what was looked up and the grid";
+    Grid grid(3, 2);
+    std::string messageById = "";
+    try {
+        grid.getLocation("no-such-location");
+    } catch (const std::runtime_error& e) {
+        messageById = e.what();
+    }
+    std::string messageByCoordinates = "";
+    try {
+        grid.getLocationByCoordinates(2, 0);
+    } catch (const std::runtime_error& e) {
+        messageByCoordinates = e.what();
+    }
+    assert(messageById.find("'no-such-location'") != std::string::npos);
+    assert(messageById.find("'3'") != std::string::npos);
+    assert(messageByCoordinates.find("(2, 0)") != std::string::npos);
+    assert(messageByCoordinates.find("'3'") != std::string::npos);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
 void seedRandomNumberGenerator() {
     srand (time (NULL));
 }
@@ -1276,5 +1367,10 @@ int main() {
     testRemovingEntityFromLocationRemovesEveryPointerAndKeepsOrder();
     testMovingEntityAddedTwiceToOneLocationLeavesASinglePointer();
     testRemovingEntityAlsoRemovesSameIdTwinInItsLocation();
+    testRemovingLocationKeepsIdsOfEntityStillPlacedElsewhere();
+    testRemovingLocationNamedByEntityPointsItAtARemainingLocation();
+    testRemovingLocationDetachesEntityDespiteSameIdTwinElsewhere();
+    testRemovingLocationsSharingAnIdDetachesEntityInBoth();
+    testLocationLookupErrorsNameWhatWasLookedUp();
     return 0;
 }

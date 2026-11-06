@@ -1,5 +1,6 @@
 #include "header/grid.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
@@ -29,7 +30,7 @@ namespace envlibcpp {
                 return location;
             }
         }
-        throw std::runtime_error("Location not found");
+        throw std::runtime_error("Location at (" + std::to_string(x) + ", " + std::to_string(y) + ") not found in grid '" + std::to_string(id) + "'");
     }
 
     int Grid::getSize() {
@@ -62,17 +63,32 @@ namespace envlibcpp {
         std::string targetId = location.getId();
         for (auto i = locations.begin(); i != locations.end();) {
             if (i->getId() == targetId) {
-                // an entity in a removed location is no longer part of the grid, so its
-                // ids are cleared the same way removeEntity() clears them
-                for (Entity* entity : i->getEntities()) {
-                    entity->resetLocationId();
-                    entity->setGridId(-1);
-                }
+                std::vector<Entity*> detached = i->getEntities();
                 i = locations.erase(i);
+                for (Entity* entity : detached) {
+                    updateIdsOfDetachedEntity(entity, targetId);
+                }
             } else {
                 i++;
             }
         }
+    }
+
+    void Grid::updateIdsOfDetachedEntity(Entity* entity, std::string removedLocationId) {
+        // compared by address, since a same-id twin elsewhere does not keep this entity placed
+        for (Location& location : locations) {
+            std::vector<Entity*>& entities = location.getEntities();
+            if (std::find(entities.begin(), entities.end(), entity) != entities.end()) {
+                if (entity->getLocationId() == removedLocationId) {
+                    entity->setLocationId(location.getId());
+                }
+                return;
+            }
+        }
+        // an entity left in no location is no longer part of the grid, so its ids are
+        // cleared the same way removeEntity() clears them
+        entity->resetLocationId();
+        entity->setGridId(-1);
     }
 
     void Grid::addEntity(Entity& entity) {
@@ -122,7 +138,7 @@ namespace envlibcpp {
                 return location;
             }
         }
-        throw std::runtime_error("Location not found");
+        throw std::runtime_error("Location with id '" + locationId + "' not found in grid '" + std::to_string(id) + "'");
     }
 
     Location& Grid::getRandomLocation() {
