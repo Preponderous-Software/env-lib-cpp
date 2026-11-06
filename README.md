@@ -77,7 +77,7 @@ Lookups that find nothing throw `std::runtime_error`:
 
 - `Environment::getFirstEntity`, when the environment contains no entities.
 - `Environment::getEntity`, when no entity has the given id. The message lists the ids that were found.
-- `Grid::getLocation` and `Grid::getLocationByCoordinates`, when no location matches.
+- `Grid::getLocation` and `Grid::getLocationByCoordinates`, when no location matches. The message names the id or coordinates requested and the grid's id.
 
 `Environment::moveEntityToNewLocation` looks up both the entity and the destination before moving anything, so an unknown entity id or location id throws and leaves the entity in place. The directional move methods catch the off-grid case and return `false`, but still throw if `entityId` does not name an entity in the environment.
 

@@ -30,7 +30,7 @@ namespace envlibcpp {
                 return location;
             }
         }
-        throw std::runtime_error("Location not found");
+        throw std::runtime_error("Location at (" + std::to_string(x) + ", " + std::to_string(y) + ") not found in grid '" + std::to_string(id) + "'");
     }
 
     int Grid::getSize() {
@@ -138,7 +138,7 @@ namespace envlibcpp {
                 return location;
             }
         }
-        throw std::runtime_error("Location not found");
+        throw std::runtime_error("Location with id '" + locationId + "' not found in grid '" + std::to_string(id) + "'");
     }
 
     Location& Grid::getRandomLocation() {
