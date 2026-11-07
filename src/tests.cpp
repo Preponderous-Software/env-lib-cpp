@@ -8,6 +8,7 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#include <type_traits>
 #include <assert.h>
 
 #include "header/entity.h"
@@ -1287,6 +1288,41 @@ void testLocationLookupErrorsNameWhatWasLookedUp() {
     std::cout << " --- " << "Success" << std::endl;
 }
 
+void testAddingEntityToUnknownLocationLeavesEnvironmentIdOfSameIdGridEntity() {
+    std::cout << "Test 77 - Adding an entity to an unknown location leaves its ids alone when its grid id already matches";
+    Grid standalone(7, 2);
+    Entity entity(0, "Daniel");
+    standalone.addEntity(entity);
+    std::string locationId = entity.getLocationId();
+    Environment environment(7, "Earth", 2);
+    Location unknown("no-such-location", 5, 5);
+    environment.addEntityToLocation(entity, unknown);
+    assert(entity.getEnvironmentId() == -1);
+    assert(entity.getGridId() == 7);
+    assert(entity.getLocationId() == locationId);
+    assert(environment.isEntityPresent(entity) == false);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testEnvironmentCannotBeCopiedOrAssigned() {
+    std::cout << "Test 78 - An environment cannot be copied or assigned";
+    static_assert(!std::is_copy_constructible<Environment>::value, "a copy would share the Grid* and double-delete it");
+    static_assert(!std::is_copy_assignable<Environment>::value, "an assignment would share the Grid* and double-delete it");
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testAddingEntityToLocationInGridReportsWhetherItWasPlaced() {
+    std::cout << "Test 79 - Adding an entity to a location in a grid reports whether it was placed";
+    Grid grid(0, 2);
+    Entity entity(0, "Daniel");
+    Location unknown("no-such-location", 5, 5);
+    assert(grid.addEntityToLocation(entity, unknown) == false);
+    assert(grid.getNumEntities() == 0);
+    assert(grid.addEntityToLocation(entity, grid.getFirstLocation()) == true);
+    assert(grid.getFirstLocation().isEntityPresent(&entity));
+    std::cout << " --- " << "Success" << std::endl;
+}
+
 void seedRandomNumberGenerator() {
     srand (time (NULL));
 }
@@ -1372,5 +1408,8 @@ int main() {
     testRemovingLocationDetachesEntityDespiteSameIdTwinElsewhere();
     testRemovingLocationsSharingAnIdDetachesEntityInBoth();
     testLocationLookupErrorsNameWhatWasLookedUp();
+    testAddingEntityToUnknownLocationLeavesEnvironmentIdOfSameIdGridEntity();
+    testEnvironmentCannotBeCopiedOrAssigned();
+    testAddingEntityToLocationInGridReportsWhetherItWasPlaced();
     return 0;
 }

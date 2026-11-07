@@ -97,16 +97,17 @@ namespace envlibcpp {
         firstLocation.addEntity(&entity);
     }
 
-    void Grid::addEntityToLocation(Entity& entity, Location& location) {
+    bool Grid::addEntityToLocation(Entity& entity, Location& location) {
         // the entity goes into the grid's own element, not the argument, which may be a
         // separately constructed Location that merely shares the id
         for (Location& l : locations) {
             if (l.getId() == location.getId()) {
                 entity.setGridId(id);
                 l.addEntity(&entity);
-                break;
+                return true;
             }
         }
+        return false;
     }
 
     void Grid::removeEntity(Entity& entity) {

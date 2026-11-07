@@ -25,7 +25,7 @@ namespace envlibcpp {
             void addLocation(Location& location);
             void removeLocation(Location& location);
             void addEntity(Entity& entity);
-            void addEntityToLocation(Entity& entity, Location& location);
+            bool addEntityToLocation(Entity& entity, Location& location);
             void removeEntity(Entity& entity);
             bool isEntityPresent(Entity& entity);
             Location& getLocation(std::string locationId);
