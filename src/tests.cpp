@@ -1311,6 +1311,18 @@ void testEnvironmentCannotBeCopiedOrAssigned() {
     std::cout << " --- " << "Success" << std::endl;
 }
 
+void testAddingEntityToLocationInGridReportsWhetherItWasPlaced() {
+    std::cout << "Test 79 - Adding an entity to a location in a grid reports whether it was placed";
+    Grid grid(0, 2);
+    Entity entity(0, "Daniel");
+    Location unknown("no-such-location", 5, 5);
+    assert(grid.addEntityToLocation(entity, unknown) == false);
+    assert(grid.getNumEntities() == 0);
+    assert(grid.addEntityToLocation(entity, grid.getFirstLocation()) == true);
+    assert(grid.getFirstLocation().isEntityPresent(&entity));
+    std::cout << " --- " << "Success" << std::endl;
+}
+
 void seedRandomNumberGenerator() {
     srand (time (NULL));
 }
@@ -1398,5 +1410,6 @@ int main() {
     testLocationLookupErrorsNameWhatWasLookedUp();
     testAddingEntityToUnknownLocationLeavesEnvironmentIdOfSameIdGridEntity();
     testEnvironmentCannotBeCopiedOrAssigned();
+    testAddingEntityToLocationInGridReportsWhetherItWasPlaced();
     return 0;
 }
