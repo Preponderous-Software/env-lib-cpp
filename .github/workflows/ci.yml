@@ -24,6 +24,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: make and run the tests
         run: bash run_tests.sh
+      - name: AddressSanitizer build and run
+        run: bash run_tests_asan.sh
       - name: CMake build and ctest
         run: |
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
