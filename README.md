@@ -57,6 +57,8 @@ A `Grid` stores its locations by value in a `std::vector<Location>`. `Grid::getL
 
 `y` increases downward: `moveEntityUp` moves an entity to `y - 1`, `moveEntityDown` to `y + 1`, `moveEntityLeft` to `x - 1`, and `moveEntityRight` to `x + 1`. The grid does not wrap. A move that would leave the grid returns `false` and leaves the entity where it was; a successful move returns `true`. `moveEntityToRandomAdjacentLocation` picks one of the same four directions with `rand()`, so it also returns `false` whenever the chosen direction points off the grid. The library never calls `srand()`; seeding is left to the caller.
 
+A directional move starts from the location named by the entity's location id (looked up with `Grid::getLocation`), not from the location that actually stores the entity. The two only differ if the location id has been changed directly, for example with `Entity::setLocationId`; the move then steps from the named location, takes the entity out of every location that holds it, and places it at the destination.
+
 ## Entity Identity
 
 Entities are matched by `Entity::getId()`, not by address. `Location::isEntityPresent`, `Location::removeEntity`, and `Environment::getEntity` all compare ids, so two distinct `Entity` objects that share an id are treated as the same entity. Removing through such a twin takes the stored entity out of its location but resets only the twin's ids, so the stored entity keeps ids describing a placement it no longer has. Entity ids should therefore be unique within an environment.
@@ -79,7 +81,7 @@ Lookups that find nothing throw `std::runtime_error`:
 - `Environment::getEntity`, when no entity has the given id. The message lists the ids that were found.
 - `Grid::getLocation` and `Grid::getLocationByCoordinates`, when no location matches. The message names the id or coordinates requested and the grid's id.
 
-`Environment::moveEntityToNewLocation` looks up both the entity and the destination before moving anything, so an unknown entity id or location id throws and leaves the entity in place. The directional move methods catch the off-grid case and return `false`, but still throw if `entityId` does not name an entity in the environment.
+`Environment::moveEntityToNewLocation` looks up both the entity and the destination before moving anything, so an unknown entity id or location id throws and leaves the entity in place. The directional move methods catch the off-grid case and return `false`, but still throw if `entityId` does not name an entity in the environment, or if that entity's location id does not name a location in the grid. In either case the entity is left in place.
 
 `addEntityToLocation` does not throw when no grid location has the given location's id. The entity is then placed nowhere, and its grid id, environment id, and location id are left unchanged. `Grid::addEntityToLocation` returns whether it placed the entity; `Environment::addEntityToLocation` returns nothing.
 

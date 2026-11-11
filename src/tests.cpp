@@ -1323,6 +1323,49 @@ void testAddingEntityToLocationInGridReportsWhetherItWasPlaced() {
     std::cout << " --- " << "Success" << std::endl;
 }
 
+void testMovingEntityInDirectionStartsFromItsLocationId() {
+    std::cout << "Test 80 - Moving an entity in a direction starts from the location its location id names";
+    Environment environment(0, "Earth", 3);
+    Entity entity(0, "Daniel");
+    environment.addEntityToLocation(entity, environment.getGrid()->getLocationByCoordinates(1, 1));
+    // the entity stays stored in 0-1-1, but its location id now names 0-0-0
+    entity.setLocationId("0-0-0");
+    assert(environment.moveEntityRight(0) == true);
+    assert(entity.getLocationId() == "0-1-0");
+    assert(environment.getGrid()->getLocation("0-1-0").isEntityPresent(&entity) == true);
+    assert(environment.getGrid()->getLocation("0-1-1").isEntityPresent(&entity) == false);
+    assert(environment.getGrid()->getLocation("0-2-1").isEntityPresent(&entity) == false);
+    assert(environment.getNumEntities() == 1);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testMovingEntityWhoseLocationIdNamesNoGridLocationThrows() {
+    std::cout << "Test 81 - Moving an entity whose location id names no grid location throws and leaves it in place";
+    Environment environment(0, "Earth", 3);
+    Entity entity(0, "Daniel");
+    environment.addEntityToLocation(entity, environment.getGrid()->getLocationByCoordinates(1, 1));
+    entity.setLocationId("no-such-location");
+    bool threwDirectional = false;
+    try {
+        environment.moveEntityUp(0);
+    } catch (const std::runtime_error& e) {
+        threwDirectional = true;
+    }
+    bool threwRandom = false;
+    try {
+        environment.moveEntityToRandomAdjacentLocation(0);
+    } catch (const std::runtime_error& e) {
+        threwRandom = true;
+    }
+    assert(threwDirectional == true);
+    assert(threwRandom == true);
+    assert(entity.getLocationId() == "no-such-location");
+    assert(entity.getEnvironmentId() == 0);
+    assert(environment.getGrid()->getLocation("0-1-1").isEntityPresent(&entity) == true);
+    assert(environment.getNumEntities() == 1);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
 void seedRandomNumberGenerator() {
     srand (time (NULL));
 }
@@ -1411,5 +1454,7 @@ int main() {
     testAddingEntityToUnknownLocationLeavesEnvironmentIdOfSameIdGridEntity();
     testEnvironmentCannotBeCopiedOrAssigned();
     testAddingEntityToLocationInGridReportsWhetherItWasPlaced();
+    testMovingEntityInDirectionStartsFromItsLocationId();
+    testMovingEntityWhoseLocationIdNamesNoGridLocationThrows();
     return 0;
 }
