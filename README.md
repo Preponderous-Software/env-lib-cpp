@@ -85,7 +85,7 @@ Lookups that find nothing throw `std::runtime_error`:
 
 `addEntityToLocation` does not throw when no grid location has the given location's id. The entity is then placed nowhere, and its grid id, environment id, and location id are left unchanged. `Grid::addEntityToLocation` returns whether it placed the entity; `Environment::addEntityToLocation` returns nothing.
 
-`Grid::getFirstLocation` and `Grid::getRandomLocation` do not check for an empty grid. Calling either on a grid with no locations — including indirectly through `Environment::addEntity` on an environment of size `0` — is undefined behaviour.
+`Grid::getFirstLocation` and `Grid::getRandomLocation` do not check for an empty grid. Calling either on a grid with no locations — including indirectly through `Environment::addEntity` on an environment of size `0` — is undefined behaviour. The other lookups are safe on an empty grid: `Grid::getLocation`, `Grid::getLocationByCoordinates`, `Environment::getEntity`, and `Environment::getFirstEntity` throw as described above, and `addEntityToLocation` places nothing.
 
 ## Building
 
