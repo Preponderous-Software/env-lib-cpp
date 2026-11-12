@@ -1366,6 +1366,76 @@ void testMovingEntityWhoseLocationIdNamesNoGridLocationThrows() {
     std::cout << " --- " << "Success" << std::endl;
 }
 
+void testEnvironmentOfSizeZeroHasNoLocationsAndLookupsThrow() {
+    std::cout << "Test 82 - An environment of size zero has no locations, its lookups throw, and it places nothing";
+    Environment environment(0, "Void", 0);
+    assert(environment.getGrid()->getLocations().size() == 0);
+    assert(environment.getGrid()->getSize() == 0);
+    assert(environment.getNumEntities() == 0);
+
+    bool threwById = false;
+    try {
+        environment.getGrid()->getLocation("0-0-0");
+    } catch (const std::runtime_error& e) {
+        threwById = true;
+    }
+    bool threwByCoordinates = false;
+    try {
+        environment.getGrid()->getLocationByCoordinates(0, 0);
+    } catch (const std::runtime_error& e) {
+        threwByCoordinates = true;
+    }
+    bool threwFirstEntity = false;
+    try {
+        environment.getFirstEntity();
+    } catch (const std::runtime_error& e) {
+        threwFirstEntity = true;
+    }
+    bool threwEntityById = false;
+    try {
+        environment.getEntity(0);
+    } catch (const std::runtime_error& e) {
+        threwEntityById = true;
+    }
+    assert(threwById == true);
+    assert(threwByCoordinates == true);
+    assert(threwFirstEntity == true);
+    assert(threwEntityById == true);
+
+    // a separately constructed location with a plausible id still names nothing in the grid
+    Entity entity(0, "Daniel");
+    Location elsewhere("0-0-0", 0, 0);
+    environment.addEntityToLocation(entity, elsewhere);
+    assert(environment.getNumEntities() == 0);
+    assert(environment.isEntityPresent(entity) == false);
+    assert(entity.getEnvironmentId() == -1);
+    assert(entity.getGridId() == -1);
+    assert(elsewhere.getNumEntities() == 0);
+
+    std::ostringstream buffer;
+    std::streambuf* previousBuffer = std::cout.rdbuf(buffer.rdbuf());
+    environment.printConsoleRepresentation();
+    std::cout.rdbuf(previousBuffer);
+    assert(buffer.str() == "\n");
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testMovingEntityToItsCurrentLocationLeavesItThere() {
+    std::cout << "Test 83 - Moving an entity to the location it is already in leaves a single pointer there";
+    Environment environment(0, "Earth", 3);
+    Entity entity(0, "Daniel");
+    environment.addEntityToLocation(entity, environment.getGrid()->getLocationByCoordinates(1, 1));
+    environment.moveEntityToNewLocation(0, "0-1-1");
+    Location& location = environment.getGrid()->getLocation("0-1-1");
+    assert(location.getNumEntities() == 1);
+    assert(location.getEntities()[0] == &entity);
+    assert(entity.getLocationId() == "0-1-1");
+    assert(entity.getEnvironmentId() == 0);
+    assert(entity.getGridId() == 0);
+    assert(environment.getNumEntities() == 1);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
 void seedRandomNumberGenerator() {
     srand (time (NULL));
 }
@@ -1456,5 +1526,7 @@ int main() {
     testAddingEntityToLocationInGridReportsWhetherItWasPlaced();
     testMovingEntityInDirectionStartsFromItsLocationId();
     testMovingEntityWhoseLocationIdNamesNoGridLocationThrows();
+    testEnvironmentOfSizeZeroHasNoLocationsAndLookupsThrow();
+    testMovingEntityToItsCurrentLocationLeavesItThere();
     return 0;
 }
