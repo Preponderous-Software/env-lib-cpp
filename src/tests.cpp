@@ -1453,6 +1453,12 @@ void testPlacingThroughGridOrLocationSetsOnlyThatLayersIds() {
     assert(placedInGrid.getLocationId() == "N/S");
     assert(placedInGrid.getEnvironmentId() == 9);
 
+    Entity placedAtLocation(2, "Phil");
+    assert(grid.addEntityToLocation(placedAtLocation, grid.getLocationByCoordinates(1, 1)) == true);
+    assert(placedAtLocation.getGridId() == 3);
+    assert(placedAtLocation.getLocationId() == "3-1-1");
+    assert(placedAtLocation.getEnvironmentId() == -1);
+
     Location location("standalone", 0, 0);
     Entity placedInLocation(1, "Bob");
     placedInLocation.setGridId(4);
