@@ -1436,6 +1436,59 @@ void testMovingEntityToItsCurrentLocationLeavesItThere() {
     std::cout << " --- " << "Success" << std::endl;
 }
 
+void testPlacingThroughGridOrLocationSetsOnlyThatLayersIds() {
+    std::cout << "Test 84 - Placing and removing through a grid or a location sets only the ids that layer knows";
+    Grid grid(3, 2);
+    Entity placedInGrid(0, "Daniel");
+    grid.addEntity(placedInGrid);
+    assert(placedInGrid.getGridId() == 3);
+    assert(placedInGrid.getEnvironmentId() == -1);
+    assert(grid.getLocation(placedInGrid.getLocationId()).isEntityPresent(&placedInGrid) == true);
+    assert(grid.getNumEntities() == 1);
+
+    // the grid has no knowledge of an environment, so removal leaves the environment id alone
+    placedInGrid.setEnvironmentId(9);
+    grid.removeEntity(placedInGrid);
+    assert(placedInGrid.getGridId() == -1);
+    assert(placedInGrid.getLocationId() == "N/S");
+    assert(placedInGrid.getEnvironmentId() == 9);
+
+    Entity placedAtLocation(2, "Phil");
+    assert(grid.addEntityToLocation(placedAtLocation, grid.getLocationByCoordinates(1, 1)) == true);
+    assert(placedAtLocation.getGridId() == 3);
+    assert(placedAtLocation.getLocationId() == "3-1-1");
+    assert(placedAtLocation.getEnvironmentId() == -1);
+
+    Location location("standalone", 0, 0);
+    Entity placedInLocation(1, "Bob");
+    placedInLocation.setGridId(4);
+    placedInLocation.setEnvironmentId(5);
+    location.addEntity(&placedInLocation);
+    assert(placedInLocation.getLocationId() == "standalone");
+    assert(placedInLocation.getGridId() == 4);
+    assert(placedInLocation.getEnvironmentId() == 5);
+    location.removeEntity(&placedInLocation);
+    assert(placedInLocation.getLocationId() == "N/S");
+    assert(placedInLocation.getGridId() == 4);
+    assert(placedInLocation.getEnvironmentId() == 5);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testRetrievingRandomLocationReturnsAGridElement() {
+    std::cout << "Test 85 - Retrieving a random location returns a reference into the grid's own locations";
+    Grid grid(0, 3);
+    std::vector<Location>& locations = grid.getLocations();
+    for (size_t i = 0; i < 100; i++) {
+        Location* random = &grid.getRandomLocation();
+        assert(random >= &locations.front() && random <= &locations.back());
+    }
+    Entity entity(0, "Daniel");
+    grid.getRandomLocation().addEntity(&entity);
+    assert(grid.isEntityPresent(entity) == true);
+    assert(grid.getNumEntities() == 1);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
 void seedRandomNumberGenerator() {
     srand (time (NULL));
 }
@@ -1528,5 +1581,7 @@ int main() {
     testMovingEntityWhoseLocationIdNamesNoGridLocationThrows();
     testEnvironmentOfSizeZeroHasNoLocationsAndLookupsThrow();
     testMovingEntityToItsCurrentLocationLeavesItThere();
+    testPlacingThroughGridOrLocationSetsOnlyThatLayersIds();
+    testRetrievingRandomLocationReturnsAGridElement();
     return 0;
 }
