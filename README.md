@@ -63,7 +63,7 @@ A directional move starts from the location named by the entity's location id (l
 
 Entities are matched by `Entity::getId()`, not by address. `Location::isEntityPresent`, `Location::removeEntity`, and `Environment::getEntity` all compare ids, so two distinct `Entity` objects that share an id are treated as the same entity. Removing through such a twin takes the stored entity out of its location but resets only the twin's ids, so the stored entity keeps ids describing a placement it no longer has. Entity ids should therefore be unique within an environment.
 
-A newly constructed entity has an environment id and grid id of `-1` and a location id of `"N/S"`. Placing it through an `Environment` sets all three; `Environment::removeEntity` resets them to those same values.
+A newly constructed entity has an environment id and grid id of `-1` and a location id of `"N/S"`. Placing it through an `Environment` sets all three; `Environment::removeEntity` resets them to those same values. The lower layers set only the ids they know: `Grid::addEntity` and `Grid::addEntityToLocation` set the grid id and location id but not the environment id, and `Grid::removeEntity` resets the grid id and location id but leaves the environment id unchanged. `Location::addEntity` and `Location::removeEntity` set and reset only the location id.
 
 `Environment::removeEntity` and `Grid::removeEntity` do nothing when the entity is not present. Calling either on an entity that is not in that environment or grid — including one placed in a different environment — leaves its environment id, grid id, location id, and actual placement unchanged. `Location::removeEntity` likewise leaves the location id of an entity that is not in that location unchanged.
 
