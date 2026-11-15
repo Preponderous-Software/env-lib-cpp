@@ -47,7 +47,7 @@ A `Grid` stores its locations by value in a `std::vector<Location>`. `Grid::getL
 
 ## Grid Layout and Movement
 
-`Environment(id, name, size)` creates a square grid of `size` × `size` locations. The grid is given the environment's own `id`, and each location's id has the form `<gridId>-<x>-<y>` (for example `0-2-1`). Locations are generated row by row, with `x` and `y` each running from `0` to `size - 1`; `Grid::getLocations()` and `Environment::printConsoleRepresentation()` follow that order, and `Environment::getFirstEntity` returns the first entity of the first occupied location in that order, regardless of the order in which entities were added. `printConsoleRepresentation()` prints each location as `[x] ` when it is occupied or `[ ] ` when it is empty.
+`Environment(id, name, size)` creates a square grid of `size` × `size` locations. The grid is given the environment's own `id`, and each location's id has the form `<gridId>-<x>-<y>` (for example `0-2-1`). Locations are generated row by row, with `x` and `y` each running from `0` to `size - 1`; `Grid::getLocations()` and `Environment::printConsoleRepresentation()` follow that order, and `Environment::getFirstEntity` returns the first entity of the first occupied location in that order, regardless of the order in which entities were added. `printConsoleRepresentation()` prints each location as `[x] ` when it is occupied or `[ ] ` when it is empty. `Environment::printInfo()` prints two lines, `=== <name> ===` and `Num entities: <n>`, where `<n>` is `getNumEntities()`.
 
 `Environment::addEntity` (and `Grid::addEntity`) places the entity in a location chosen by `Grid::getRandomLocation()`, not in the first location. To place an entity at a specific location, use `addEntityToLocation`.
 
@@ -61,7 +61,7 @@ A directional move starts from the location named by the entity's location id (l
 
 ## Entity Identity
 
-Entities are matched by `Entity::getId()`, not by address. `Location::isEntityPresent`, `Location::removeEntity`, and `Environment::getEntity` all compare ids, so two distinct `Entity` objects that share an id are treated as the same entity. Removing through such a twin takes the stored entity out of its location but resets only the twin's ids, so the stored entity keeps ids describing a placement it no longer has. Entity ids should therefore be unique within an environment.
+Entities are matched by `Entity::getId()`, not by address. `Location::isEntityPresent`, `Location::removeEntity`, and `Environment::getEntity` all compare ids, as do `Grid::isEntityPresent` and `Environment::isEntityPresent`, which ask each location in turn, so two distinct `Entity` objects that share an id are treated as the same entity. Removing through such a twin takes the stored entity out of its location but resets only the twin's ids, so the stored entity keeps ids describing a placement it no longer has. Entity ids should therefore be unique within an environment.
 
 A newly constructed entity has an environment id and grid id of `-1` and a location id of `"N/S"`. Placing it through an `Environment` sets all three; `Environment::removeEntity` resets them to those same values. The lower layers set only the ids they know: `Grid::addEntity` and `Grid::addEntityToLocation` set the grid id and location id but not the environment id, and `Grid::removeEntity` resets the grid id and location id but leaves the environment id unchanged. `Location::addEntity` and `Location::removeEntity` set and reset only the location id.
 
