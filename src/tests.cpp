@@ -1489,6 +1489,44 @@ void testRetrievingRandomLocationReturnsAGridElement() {
     std::cout << " --- " << "Success" << std::endl;
 }
 
+std::string captureInfo(Environment& environment) {
+    std::ostringstream buffer;
+    std::streambuf* previousBuffer = std::cout.rdbuf(buffer.rdbuf());
+    environment.printInfo();
+    std::cout.rdbuf(previousBuffer);
+    return buffer.str();
+}
+
+void testPrintingEnvironmentInfoPrintsNameAndPointerCount() {
+    std::cout << "Test 86 - Printing environment info prints the current name and the number of stored entity pointers";
+    Environment environment(0, "Earth", 2);
+    assert(captureInfo(environment) == "=== Earth ===\nNum entities: 0\n");
+
+    // an entity added twice is stored twice, and printInfo reports getNumEntities() as is
+    Entity entity(0, "Daniel");
+    Location& location = environment.getGrid()->getLocationByCoordinates(0, 0);
+    environment.addEntityToLocation(entity, location);
+    environment.addEntityToLocation(entity, location);
+    environment.setName("Mars");
+    assert(captureInfo(environment) == "=== Mars ===\nNum entities: 2\n");
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testGridPresenceMatchesSameIdTwin() {
+    std::cout << "Test 87 - A grid reports a same-id twin of a stored entity as present";
+    Grid grid(0, 2);
+    Entity original(5, "Daniel");
+    Entity twin(5, "Bob");
+    Entity other(6, "Phil");
+    grid.addEntityToLocation(original, grid.getLocationByCoordinates(1, 1));
+    assert(grid.isEntityPresent(twin) == true);
+    assert(grid.isEntityPresent(other) == false);
+    // the twin was never placed, so its own ids are untouched by the lookup
+    assert(twin.getGridId() == -1);
+    assert(twin.getLocationId() == "N/S");
+    std::cout << " --- " << "Success" << std::endl;
+}
+
 void seedRandomNumberGenerator() {
     srand (time (NULL));
 }
@@ -1583,5 +1621,7 @@ int main() {
     testMovingEntityToItsCurrentLocationLeavesItThere();
     testPlacingThroughGridOrLocationSetsOnlyThatLayersIds();
     testRetrievingRandomLocationReturnsAGridElement();
+    testPrintingEnvironmentInfoPrintsNameAndPointerCount();
+    testGridPresenceMatchesSameIdTwin();
     return 0;
 }
