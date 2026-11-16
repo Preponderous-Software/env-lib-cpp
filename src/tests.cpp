@@ -1527,6 +1527,59 @@ void testGridPresenceMatchesSameIdTwin() {
     std::cout << " --- " << "Success" << std::endl;
 }
 
+void testLocationLookupsUseFirstMatchButRemovalTakesEvery() {
+    std::cout << "Test 88 - Lookups and placement use the first matching location, removal takes every match";
+    Grid grid(0, 1);
+    Location sameId("0-0-0", 3, 3);
+    Location sameCoordinates("extra-location", 0, 0);
+    grid.addLocation(sameId);
+    grid.addLocation(sameCoordinates);
+    assert(grid.getLocations().size() == 3);
+
+    // the generated location comes first, so each lookup returns it rather than a later match
+    assert(grid.getLocation("0-0-0").getX() == 0);
+    assert(grid.getLocationByCoordinates(0, 0).getId() == "0-0-0");
+
+    // placement by id goes into the first match only
+    Entity entity(0, "Daniel");
+    Location elsewhere("0-0-0", 9, 9);
+    assert(grid.addEntityToLocation(entity, elsewhere) == true);
+    assert(grid.getLocations()[0].getNumEntities() == 1);
+    assert(grid.getLocations()[1].getNumEntities() == 0);
+
+    // removal takes out every location with the id, leaving only the one with other coordinates
+    grid.removeLocation(sameId);
+    assert(grid.getLocations().size() == 1);
+    assert(grid.getLocations()[0].getId() == "extra-location");
+    assert(entity.getLocationId() == "N/S");
+    assert(entity.getGridId() == -1);
+    std::cout << " --- " << "Success" << std::endl;
+}
+
+void testAddingOccupiedLocationToGridCopiesItsEntityPointers() {
+    std::cout << "Test 89 - Adding an occupied location to a grid copies its entity pointers without setting grid ids";
+    Grid grid(7, 1);
+    Location original("extra-location", 5, 5);
+    Entity entity(0, "Daniel");
+    original.addEntity(&entity);
+    grid.addLocation(original);
+
+    // the copy holds the same pointer, so the grid sees and counts the entity
+    assert(grid.getNumEntities() == 1);
+    assert(grid.isEntityPresent(entity) == true);
+    assert(grid.getLocation("extra-location").getEntities()[0] == &entity);
+    // but addLocation sets no ids: the grid id stays unset, the location id is the one Location::addEntity set
+    assert(entity.getGridId() == -1);
+    assert(entity.getLocationId() == "extra-location");
+
+    // the two vectors are independent afterwards: emptying the original leaves the copy's pointer
+    original.removeEntity(&entity);
+    assert(original.getNumEntities() == 0);
+    assert(grid.isEntityPresent(entity) == true);
+    assert(entity.getLocationId() == "N/S");
+    std::cout << " --- " << "Success" << std::endl;
+}
+
 void seedRandomNumberGenerator() {
     srand (time (NULL));
 }
@@ -1623,5 +1676,7 @@ int main() {
     testRetrievingRandomLocationReturnsAGridElement();
     testPrintingEnvironmentInfoPrintsNameAndPointerCount();
     testGridPresenceMatchesSameIdTwin();
+    testLocationLookupsUseFirstMatchButRemovalTakesEvery();
+    testAddingOccupiedLocationToGridCopiesItsEntityPointers();
     return 0;
 }

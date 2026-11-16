@@ -43,7 +43,9 @@ An `Environment` owns its `Grid`. The grid is allocated in the `Environment` con
 
 `Environment`'s copy constructor and copy assignment operator are deleted, since a copy would share the original's `Grid*` and both would delete it on destruction. Copying or assigning an `Environment` is therefore a compile error; pass it by reference or by pointer instead.
 
-A `Grid` stores its locations by value in a `std::vector<Location>`. `Grid::getLocation`, `getLocationByCoordinates`, `getFirstLocation`, and `getRandomLocation` return a `Location&` into that vector, so any such reference may be invalidated by a later call to `Grid::addLocation` or `Grid::removeLocation`. `addLocation` also stores a copy of its argument; the grid subsequently operates on the copy, not on the caller's original object.
+A `Grid` stores its locations by value in a `std::vector<Location>`. `Grid::getLocation`, `getLocationByCoordinates`, `getFirstLocation`, and `getRandomLocation` return a `Location&` into that vector, so any such reference may be invalidated by a later call to `Grid::addLocation` or `Grid::removeLocation`. `addLocation` also stores a copy of its argument; the grid subsequently operates on the copy, not on the caller's original object. If the argument already holds entities, the copy holds the same `Entity*` pointers, so the grid counts those entities and reports them as present, but `addLocation` sets none of their ids: their grid id stays as it was. From then on the two vectors are independent, so removing an entity from the original leaves it in the grid's copy.
+
+`addLocation` does not check for an existing location with the same id or coordinates. When several match, `Grid::getLocation`, `Grid::getLocationByCoordinates`, and `addEntityToLocation` all use the first match in `getLocations()` order, while `Grid::removeLocation` removes every location with the given id.
 
 ## Grid Layout and Movement
 
