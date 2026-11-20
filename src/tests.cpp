@@ -1033,6 +1033,25 @@ void testPrintingConsoleRepresentationMisalignsAfterSettingGridSize() {
     std::cout << " --- " << "Success" << std::endl;
 }
 
+void testPrintingConsoleRepresentationFollowsLocationVectorAfterAddingOrRemovingLocations() {
+    std::cout << "Test 90 - Printing the console representation follows the location vector after adding or removing locations";
+    // a removed location shifts every later one back a slot, so the rows no longer match y
+    Environment shrunk(0, "Earth", 2);
+    Entity first(0, "Daniel");
+    shrunk.addEntityToLocation(first, shrunk.getGrid()->getLocationByCoordinates(0, 1));
+    shrunk.getGrid()->removeLocation(shrunk.getGrid()->getLocationByCoordinates(0, 0));
+    assert(captureConsoleRepresentation(shrunk) == "[ ] [x] \n[ ] \n");
+
+    // an added location is printed after the generated ones, whatever its coordinates
+    Environment grown(0, "Earth", 2);
+    Location extra("extra-location", 5, 5);
+    grown.getGrid()->addLocation(extra);
+    Entity second(1, "Bob");
+    grown.addEntityToLocation(second, extra);
+    assert(captureConsoleRepresentation(grown) == "[ ] [ ] \n[ ] [ ] \n[x] \n");
+    std::cout << " --- " << "Success" << std::endl;
+}
+
 void testRetrievingFirstEntityFollowsLocationOrder() {
     std::cout << "Test 62 - Retrieving the first entity follows location order, not insertion order";
     Environment environment(0, "Earth", 2);
@@ -1678,5 +1697,6 @@ int main() {
     testGridPresenceMatchesSameIdTwin();
     testLocationLookupsUseFirstMatchButRemovalTakesEvery();
     testAddingOccupiedLocationToGridCopiesItsEntityPointers();
+    testPrintingConsoleRepresentationFollowsLocationVectorAfterAddingOrRemovingLocations();
     return 0;
 }
